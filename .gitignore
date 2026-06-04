@@ -1,0 +1,38 @@
+# ========================
+# Environment Variables (CRITICAL)
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
+# OS & Editor Files
+# ========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ========================
+# Frontend (React + Vite)
+# ========================
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ========================
+# Backend (Python + FastAPI)
+# ========================
+backend/venv/
+backend/env/
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.pytest_cache/
+
+# (Note: backend/uv.lock is NOT ignored because lock files 
+# should be committed to keep exact package versions)
