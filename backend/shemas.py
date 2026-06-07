@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CustomerDetails(BaseModel):
@@ -27,8 +27,7 @@ class OrderResponse(BaseModel):
     pickup_datetime: datetime
     stripe_session_id: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductResponse(BaseModel):
@@ -38,5 +37,4 @@ class ProductResponse(BaseModel):
     lead_time_h: int
     is_active: bool
 
-    class Config:
-        from_attribute = True
+    model_config = ConfigDict(from_attributes=True)
