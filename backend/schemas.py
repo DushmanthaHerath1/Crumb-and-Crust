@@ -38,3 +38,14 @@ class ProductResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BusinessRuleResponse(BaseModel):
+    id: int
+    daily_order_cap: int
+    blackout_dates: List[str]
+
+    opening_hours_json: dict
+    max_advance_days: int
+
+    model_config = ConfigDict(from_attributes=True)

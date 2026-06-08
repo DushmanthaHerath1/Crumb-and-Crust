@@ -32,6 +32,10 @@ class BusinessRule(Base):
     id = Column(Integer, primary_key=True, index=True)
     daily_order_cap = Column(Integer, default=50)
     blackout_dates = Column(JSON, default=list)
+    opening_hours_json = Column(
+        JSON, default=lambda: {"start": "08:00", "end": "14:00"}
+    )
+    max_advance_days = Column(Integer, default=30)
 
 
 # Orders Table (Main checkout state)
