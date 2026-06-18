@@ -19,7 +19,7 @@ class OrderCreate(BaseModel):
     customer_details: CustomerDetails
     cart_items: List[CartItem]
     requested_pickup_datetime: datetime
-    idempotency_key = str = Field(
+    idempotency_key: str = Field(
         ..., description="UUID from front-end to prevent duplicate orders"
     )
 

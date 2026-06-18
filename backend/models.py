@@ -50,6 +50,7 @@ class Order(Base):
     )  ## pending, paid, ready_for_pickup, completed
     stripe_session_id = Column(String, unique=True, nullable=True)
     paid_at = Column(DateTime, nullable=True)
+    idempotency_key = Column(String, unique=True, index=True, nullable=True)
 
     items = relationship("OrderItem", back_populates="order")
 
@@ -62,6 +63,7 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, nullable=False)
+    subtotal = Column(Float, nullable=False)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

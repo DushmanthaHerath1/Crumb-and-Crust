@@ -77,6 +77,12 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
 
     rule = db.query(models.BusinessRule).first()
 
+    if not rule:
+        raise HTTPException(
+            status_code=500,
+            detail="System configuration error: Business rules are not defined in the database.",
+        )
+
     pickup_date_str = order_data.requested_pickup_datetime.date().isoformat()
 
     if rule:
@@ -108,17 +114,19 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
             )
 
     try:
-        customer_data_dict = order_data.customer_details.model_dump()
-
-        new_order = models.Order(
-            customer_json=customer_data_dict,
-            pickup_datetime=order_data.requested_pickup_datetime,
-            status="pending",
-        )
-        db.add(new_order)
-        db.flush()
-
+        max_lead_time_hours = 0
         calculated_total = 0
+        validated_items = []
+
+        # New Idempotency Ckeck
+        existing_order = (
+            db.query(models.Order)
+            .filter(models.Order.idempotency_key == order_data.idempotency_key)
+            .first()
+        )
+
+        if existing_order:
+            return existing_order
 
         for item in order_data.cart_items:
             product = (
@@ -126,21 +134,49 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
                 .filter(models.Product.id == item.product_id)
                 .first()
             )
-
             if not product or not product.is_active:
                 raise HTTPException(
-                    status_code=400,
+                    status_code=201,
                     detail=f"Product ID {item.product_id} is unavailable.",
                 )
+
+            if product.lead_time_h > max_lead_time_hours:
+                max_lead_time_hours = product.lead_time_h
 
             line_total = product.price * item.quantity
             calculated_total += line_total
 
+            validated_items.append({"product": product, "quantity": item.quantity})
+
+        time_difference = order_data.requested_pickup_datetime.replace(
+            tzinfo=None
+        ) - datetime.now().replace(tzinfo=None)
+        hours_difference = time_difference.total_seconds() / 3600
+
+        if hours_difference < max_lead_time_hours:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Minimum lead time not met. Your cart requires at least {max_lead_time_hours} hours of preparation.",
+            )
+
+        customer_data_dict = order_data.customer_details.model_dump()
+
+        new_order = models.Order(
+            customer_json=customer_data_dict,
+            pickup_datetime=order_data.requested_pickup_datetime,
+            status="pending",
+            idempotency_key=order_data.idempotency_key,  # Parsing idempotency key
+        )
+        db.add(new_order)
+        db.flush()
+
+        for v_item in validated_items:
             new_item = models.OrderItem(
                 order_id=new_order.id,
-                product_id=product.id,
-                quantity=item.quantity,
-                unit_price=product.price,
+                product_id=v_item["product"].id,
+                quantity=v_item["quantity"],
+                # unit_price=v_item["product"].price,
+                subtotal=v_item["product"].price * v_item["quantity"],
             )
             db.add(new_item)
 
@@ -148,9 +184,6 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
         db.refresh(new_order)
 
         return new_order
-
-    except HTTPException:
-        raise
 
     except Exception as e:
         db.rollback()
