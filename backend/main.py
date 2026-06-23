@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from typing import List
@@ -6,7 +7,7 @@ import models
 import schemas
 import stripe
 from database import get_db
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
@@ -239,3 +240,53 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+
+@app.post("/api/webhooks/stripe")
+async def stripe_webhook(
+    request: Request,
+    stripe_signature: str = Header(None),
+    db: Session = Depends(get_db),
+):
+
+    payload = await request.body()
+
+    if stripe.api_key == "sk_test_dummy_key_for_mocking":
+        try:
+            event = json.loads(payload)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    else:
+        webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+        if not webhook_secret:
+            raise HTTPException(status_code=500, detail="Webhook secret not configured")
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, stripe_signature, webhook_secret
+            )
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid payload")
+        except stripe.error.SignatureVerificationError:
+            raise HTTPException(status_code=400, detail="invalid signature")
+    if event.get("type") == "checkout.session.completed":
+        session_id = event["data"]["object"]["id"]
+
+        order = (
+            db.query(models.Order)
+            .filter(models.Order.stripe_session_id == session_id)
+            .first()
+        )
+
+        if order:
+            if order.status == "pending":
+                order.status = "paid"
+                db.commit()
+                print(f"Success: Order {order.id} status changed to PAID!")
+            else:
+                print(f"Idempotency: Order {order.id} is already processed.")
+        else:
+            print(f"ERROR: Order not found for session ID {session_id}")
+
+    return {"status": "success"}
