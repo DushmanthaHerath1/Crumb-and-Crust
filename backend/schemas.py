@@ -29,6 +29,7 @@ class OrderResponse(BaseModel):
     status: str
     pickup_datetime: datetime
     stripe_session_id: Optional[str] = None
+    checkout_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

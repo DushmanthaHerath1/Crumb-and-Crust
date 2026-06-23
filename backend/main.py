@@ -1,8 +1,10 @@
+import os
 from datetime import datetime
 from typing import List
 
 import models
 import schemas
+import stripe
 from database import get_db
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +12,9 @@ from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
 app = FastAPI(title="Crumb & Crust API")
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 app.add_middleware(
     CORSMiddleware,
@@ -183,8 +188,54 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
         db.commit()
         db.refresh(new_order)
 
-        return new_order
+        calculated_total_cents = int(calculated_total * 100)
 
+        if stripe.api_key == "sk_test_dummy_key_for_mocking" or not stripe.api_key:
+            session_id = f"mock_sess_{new_order.id}"
+            checkout_url = f"{FRONTEND_URL}/mock-checkout?session_id={session_id}"
+
+        else:
+            try:
+                stripe_session = stripe.checkout.Session.create(
+                    payment_method_types=["card"],
+                    line_items=[
+                        {
+                            "price_data": {
+                                "currency": "aud",
+                                "product_data": {
+                                    "name": f"Crumb & Crust Order #{new_order.id}",
+                                },
+                                "unit_amount": calculated_total_cents,
+                            },
+                            "quantity": 1,
+                        }
+                    ],
+                    mode="payment",
+                    success_url=f"{FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
+                    cancel_url=f"{FRONTEND_URL}",
+                    client_reference_id=str(new_order.id),
+                )
+                session_id = stripe_session.id
+                checkout_url = stripe_session.url
+
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(status_code=500, detail=f"Stripe error: {str(e)}")
+
+        new_order.stripe_session_id = session_id
+        db.commit()
+
+        return {
+            "id": new_order.id,
+            "status": new_order.status,
+            "pickup_datetime": new_order.pickup_datetime,
+            "stripe_session_id": session_id,
+            "checkout_url": checkout_url,
+        }
+
+        # return new_order #this guy is blurred after new code implementation
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
