@@ -74,17 +74,22 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     role = Column(String, default="staff")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 # Order History Table (Audit Trail)
-class OrderHistory(Base):
-    __tablename__ = "order_history"
+class OrderStatusHistory(Base):
+    __tablename__ = "order_status-history"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))
-    changed_by_user_id = Column(Integer, ForeignKey("admin_users.id"))
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    changed_by_user_id = Column(Integer, ForeignKey("admin_users.id"), nullable=False)
+    old_status = Column(String, nullable=False)
     new_status = Column(String, nullable=False)
     changed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    order = relationship("Order")
+    changed_by = relationship("AdminUser")

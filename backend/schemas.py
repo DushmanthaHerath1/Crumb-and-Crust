@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class CustomerDetails(BaseModel):
@@ -53,3 +53,22 @@ class BusinessRuleResponse(BaseModel):
     max_advance_days: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AdminLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminResponse(BaseModel):
+    id: int
+    email: EmailStr
+    role: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OrderStatusUpdate(BaseModel):
+    new_status: str
