@@ -82,7 +82,7 @@ class AdminUser(Base):
 
 # Order History Table (Audit Trail)
 class OrderStatusHistory(Base):
-    __tablename__ = "order_status-history"
+    __tablename__ = "order_status_history"
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
