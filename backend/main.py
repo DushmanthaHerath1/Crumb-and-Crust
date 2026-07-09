@@ -8,8 +8,10 @@ import schemas
 import security
 import stripe
 from database import get_db
+from dependencies import get_current_admin
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
@@ -295,18 +297,20 @@ async def stripe_webhook(
 
 # admin login endpoint
 @app.post("/api/admin/login")
-def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
+def admin_login(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     """
-    Authenticate and admin user and return a JWT token.
+    Authenticate and admin user and return a JWT token (OAuth2 Compatible).
     """
     user = (
         db.query(models.AdminUser)
-        .filter(models.AdminUser.email == login_data.email)
+        .filter(models.AdminUser.email == form_data.username)
         .first()
     )
 
     if not user or not security.verify_password(
-        login_data.password, user.hashed_password
+        form_data.password, user.hashed_password
     ):
         raise HTTPException(
             status_code=401,
@@ -319,3 +323,16 @@ def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# test: endpoint for view orders (secured)
+@app.get("/api/admin/orders")
+def get_all_orders(
+    db: Session = Depends(get_db),
+    current_admin: models.AdminUser = Depends(get_current_admin),
+):
+    """
+    Get all active orders (Only accessible by logged-in admins)
+    """
+    orders = db.query(models.Order).order_by(models.Order.pickup_datetime.asc()).all()
+    return orders
