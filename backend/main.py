@@ -5,6 +5,7 @@ from typing import List
 
 import models
 import schemas
+import security
 import stripe
 from database import get_db
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -290,3 +291,31 @@ async def stripe_webhook(
             print(f"ERROR: Order not found for session ID {session_id}")
 
     return {"status": "success"}
+
+
+# admin login endpoint
+@app.post("/api/admin/login")
+def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
+    """
+    Authenticate and admin user and return a JWT token.
+    """
+    user = (
+        db.query(models.AdminUser)
+        .filter(models.AdminUser.email == login_data.email)
+        .first()
+    )
+
+    if not user or not security.verify_password(
+        login_data.password, user.hashed_password
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="invalid email or password",
+            headers={"WWW-Authenticate", "Bearer"},
+        )
+
+    access_token = security.create_access_token(
+        data={"sub": user.email, "role": user.role, "user_id": user.id}
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
