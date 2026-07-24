@@ -336,3 +336,38 @@ def get_all_orders(
     """
     orders = db.query(models.Order).order_by(models.Order.pickup_datetime.asc()).all()
     return orders
+
+
+@app.patch("/api/admin/orders/{order_id}/status")
+def update_order_status(
+    order_id: int,
+    status_update: schemas.OrderStatusUpdate,
+    db: Session = Depends(get_db),
+    current_admin: models.AdminUser = Depends(get_current_admin),
+):
+    """
+    Update status of an order and create an audit trail record.
+    """
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    old_status = order.status
+
+    order.status = status_update.new_status
+
+    history_record = models.OrderStatusHistory(
+        order_id=order.id,
+        changed_by_user_id=current_admin.id,
+        old_status=old_status,
+        new_status=status_update.new_status,
+    )
+
+    try:
+        db.add(history_record)
+        db.commit()
+        db.refresh(order)
+    except Exception as e:
+        db.rollback()  # restore changes
+        raise HTTPException(status_code=500, detail=f"Database transaction failed{e}")
