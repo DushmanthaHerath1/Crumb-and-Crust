@@ -1,9 +1,4 @@
 # ========================
-# Root folder
-# ========================
-__pycache__/
-*.pyc
-# ========================
 # Environment Variables (CRITICAL)
 # ========================
 .env
@@ -38,8 +33,6 @@ backend/__pycache__/
 backend/*.py[cod]
 backend/*$py.class
 backend/.pytest_cache/
-*.pyc
-
 
 # (Note: backend/uv.lock is NOT ignored because lock files 
 # should be committed to keep exact package versions)
