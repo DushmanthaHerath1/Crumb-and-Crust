@@ -32,6 +32,10 @@ class BusinessRule(Base):
     id = Column(Integer, primary_key=True, index=True)
     daily_order_cap = Column(Integer, default=50)
     blackout_dates = Column(JSON, default=list)
+    opening_hours_json = Column(
+        JSON, default=lambda: {"start": "08:00", "end": "14:00"}
+    )
+    max_advance_days = Column(Integer, default=30)
 
 
 # Orders Table (Main checkout state)
@@ -46,6 +50,7 @@ class Order(Base):
     )  ## pending, paid, ready_for_pickup, completed
     stripe_session_id = Column(String, unique=True, nullable=True)
     paid_at = Column(DateTime, nullable=True)
+    idempotency_key = Column(String, unique=True, index=True, nullable=True)
 
     items = relationship("OrderItem", back_populates="order")
 
@@ -58,6 +63,7 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, nullable=False)
+    subtotal = Column(Float, nullable=False)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
@@ -68,17 +74,22 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     role = Column(String, default="staff")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 # Order History Table (Audit Trail)
-class OrderHistory(Base):
-    __tablename__ = "order_history"
+class OrderStatusHistory(Base):
+    __tablename__ = "order_status_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))
-    changed_by_user_id = Column(Integer, ForeignKey("admin_users.id"))
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    changed_by_user_id = Column(Integer, ForeignKey("admin_users.id"), nullable=False)
+    old_status = Column(String, nullable=False)
     new_status = Column(String, nullable=False)
     changed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    order = relationship("Order")
+    changed_by = relationship("AdminUser")
