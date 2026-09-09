@@ -1,38 +1,58 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import useCartStore from "../store/useCartStore";
 
 const Navbar = () => {
   // to track Mobile menu open or closed
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const cartItemCount = useCartStore((state) => state.cartItemCount());
+  const openCart = useCartStore((state) => state.openCart);
+
   return (
-    <nav className="w-full h-[64px] bg-[#131313] px-[20px] md:px-[80px] flex items-center justify-between relative z-50">
+    <nav className="w-full h-16 bg-surface px-(--spacing-container-mobile) md:px-(--spacing-container-desktop) flex items-center justify-between relative z-50">
       {/* Logo */}
-      <div className="text-[#FFB595] font-serif text-[18px] font-bold tracking-wide">
+      <div className="text-primary font-heading text-xl font-bold tracking-wide">
         Crumb & Crust
       </div>
 
       {/* Desktop Navigation Links (Hidden on Mobile) */}
       <div className="hidden md:flex items-center gap-8">
-        <div className="flex items-center gap-6 text-[#E0C0B2] text-[16px] font-sans">
-          <a href="#" className="text-[#FFB595] font-bold">
+        <div className="flex items-center gap-6 text-on-surface-variant text-base font-body">
+          <a
+            href="#"
+            className="hover:text-primary hover:font-bold active:text-primary active:font-bold transition-colors"
+          >
             Home
           </a>
-          <a href="#" className="hover:text-[#FFB595] transition-colors">
+          <a
+            href="#"
+            className="hover:text-primary hover:font-bold active:text-primary active:font-bold transition-colors"
+          >
             Menu
           </a>
-          <a href="#" className="hover:text-[#FFB595] transition-colors">
+          <a
+            href="#"
+            className="hover:text-primary hover:font-bold active:text-primary active:font-bold transition-colors"
+          >
             Orders
           </a>
-          <a href="#" className="hover:text-[#FFB595] transition-colors">
+          <a
+            href="#"
+            className="hover:text-primary hover:font-bold active:text-primary active:font-bold transition-colors"
+          >
             Profile
           </a>
         </div>
       </div>
 
       {/* Cart & Hamburger Menu (Right Side) */}
-      <div className="flex items-center gap-4 text-[#FFB595]">
+      <div className="flex items-center gap-4 text-primary">
         {/* Cart Icon (Visible on both Mobile & Desktop) */}
-        <button className="hover:opacity-80 transition-opacity">
+        <button
+          className="relative hover:opacity-80 transition-opacity"
+          aria-label={`Cart, ${cartItemCount} item${cartItemCount !== 1 ? "s" : ""}`}
+          onClick={openCart}
+        >
           <svg
             width="20"
             height="20"
@@ -47,6 +67,12 @@ const Navbar = () => {
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
+
+          {cartItemCount > 0 && (
+            <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold bg-primary text-on-primary leading-none">
+              {cartItemCount > 9 ? "9+" : cartItemCount}
+            </span>
+          )}
         </button>
 
         {/* Hamburger / Close Icon (Visible ONLY on Mobile) */}
@@ -90,30 +116,33 @@ const Navbar = () => {
       </div>
       {/* Mobile Menu Dropdown (Animated) */}
       <div
-        className={`absolute top-[64px] left-0 w-full bg-[#131313] flex flex-col items-end px-6 gap-6 border-t border-[#FFB595]/20 rounded-b-lg shadow-lg md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`absolute top-16 left-0 w-full bg-surface flex flex-col items-end px-6 gap-6 border-t border-primary/20 rounded-b-lg shadow-lg md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
           isMobileMenuOpen
-            ? "max-h-[300px] py-6 opacity-100"
+            ? "max-h-75 py-6 opacity-100"
             : "max-h-0 py-0 opacity-0"
         }`}
       >
-        <a href="#" className="text-[#FFB595] font-bold text-[16px]">
+        <a
+          href="#"
+          className="text-base text-on-surface-variant hover:text-primary active:text-primary active:font-bold transition-colors"
+        >
           Home
         </a>
         <a
           href="#"
-          className="text-[#E0C0B2] hover:text-[#FFB595] text-[16px] transition-colors"
+          className="text-base text-on-surface-variant hover:text-primary active:text-primary active:font-bold transition-colors"
         >
           Menu
         </a>
         <a
           href="#"
-          className="text-[#E0C0B2] hover:text-[#FFB595] text-[16px] transition-colors"
+          className="text-base text-on-surface-variant hover:text-primary active:text-primary active:font-bold transition-colors"
         >
           Orders
         </a>
         <a
           href="#"
-          className="text-[#E0C0B2] hover:text-[#FFB595] text-[16px] transition-colors"
+          className="text-base text-on-surface-variant hover:text-primary active:text-primary active:font-bold transition-colors"
         >
           Profile
         </a>

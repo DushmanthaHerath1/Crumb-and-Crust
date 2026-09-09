@@ -102,17 +102,17 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 ### 1.2 — Fix `App.jsx` (Data Plumbing)
 
 - [x] **Fix `https` to `http` URL bug** — Change `fetch("https://localhost:8000/api/menu")` to `fetch("http://localhost:8000/api/menu")` in `App.jsx`.
-- [ ] **Pass `menu` prop down to `MenuSection`** — `App.jsx` already fetches and stores menu data in state but never passes it: add `menu={menu}` to `<MenuSection />`. This one line connects the fetch to the grid.
-- [ ] **Add loading and error states to `App.jsx`** — Track `isLoading` and `error` state alongside `menu`. Pass them to `MenuSection` so the UI can show a spinner or error message instead of silently doing nothing.
+- [x] **Pass `menu` prop down to `MenuSection`** — `App.jsx` already fetches and stores menu data in state but never passes it: add `menu={menu}` to `<MenuSection />`. This one line connects the fetch to the grid.
+- [x] **Add loading and error states to `App.jsx`** — Track `isLoading` and `error` state alongside `menu`. Pass them to `MenuSection` so the UI can show a spinner or error message instead of silently doing nothing.
 - [ ] **Set up React Router in `App.jsx`** — Install `react-router-dom`, wrap the app in `<BrowserRouter>`, and define routes: `/` (storefront), `/checkout` (guest form + date picker), `/success` (confirmation page), `/admin` (login), `/admin/dashboard` (kitchen). _(No `/cart` route — cart is a drawer only.)_
 
 ### 1.3 — Connect `MenuFilter` to `ProductGrid`
 
-- [ ] **Lift filter state to `MenuSection`** — Move `activeTab` state from `MenuFilter` up to `MenuSection`. Pass `activeTab` and `onTabChange` as props down to `MenuFilter`.
-- [ ] **Update `MenuFilter` to accept props** — Change `MenuFilter` to a controlled component: accept `activeTab`, `onTabChange`, and `categories` as props instead of managing its own state or hardcoding the tab list.
-- [ ] **Derive categories dynamically from menu data** — In `MenuSection`, compute the tab list from the live API response: `["All", ...new Set(menu.map(p => p.category).filter(Boolean))]`. This means adding a new category to the DB automatically adds a new tab — no frontend change ever needed.
-- [ ] **Add category-based filtering in `MenuSection`** — After lifting state, filter the `menu` array by `product.category` matching `activeTab` before passing `filteredProducts` to `ProductGrid`. The **"All"** tab shows all active products with no filter applied.
-- [ ] **Update cards to use real API data** — Ensure `FeaturedProductCard` and `ProductCard` accept and render `description` and `imageUrl` from real API data instead of hardcoded defaults.
+- [x] **Lift filter state to `MenuSection`** — Move `activeTab` state from `MenuFilter` up to `MenuSection`. Pass `activeTab` and `onTabChange` as props down to `MenuFilter`.
+- [x] **Update `MenuFilter` to accept props** — Change `MenuFilter` to a controlled component: accept `activeTab`, `onTabChange`, and `categories` as props instead of managing its own state or hardcoding the tab list.
+- [x] **Derive categories dynamically from menu data** — In `MenuSection`, compute the tab list from the live API response: `["All", ...new Set(menu.map(p => p.category).filter(Boolean))]`. This means adding a new category to the DB automatically adds a new tab — no frontend change ever needed.
+- [x] **Add category-based filtering in `MenuSection`** — After lifting state, filter the `menu` array by `product.category` matching `activeTab` before passing `filteredProducts` to `ProductGrid`. The **"All"** tab shows all active products with no filter applied.
+- [x] **Update cards to use real API data** — Ensure `FeaturedProductCard` and `ProductCard` accept and render `description` and `imageUrl` from real API data instead of hardcoded defaults.
 
 ### 1.4 — Wire `AddToCartButton` to `useCartStore`
 
@@ -122,13 +122,14 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 1.5 — Wire Cart Count to `Navbar`
 
-- [ ] **Import `useCartStore` in `Navbar`** — Destructure the `cartItemCount` derived value.
-- [ ] **Add cart count badge to cart icon** — Conditionally render a small orange badge (absolute-positioned circle with count) over the cart SVG icon in `Navbar` when `cartItemCount > 0`.
-- [ ] **Add `onClick` to the cart icon button in `Navbar`** — Wire the click to open the cart drawer (created in Phase 2).
+- [x] **Import `useCartStore` in `Navbar`** — `cartItemCount` via selector `(state) => state.cartItemCount()` (called with `()` since it's a function in the store). Also reads `openCart`.
+- [x] **Add cart count badge to cart icon** — `absolute -top-1.5 -right-2` badge inside a `relative` button. Conditional render when `cartItemCount > 0`. Caps at `9+`.
+- [x] **Add `onClick` to the cart icon button in `Navbar`** — Wired to `openCart()`. CartDrawer will consume `isCartOpen` in Phase 2.
 
 ### 1.6 — Wire Hero CTA Button
 
-- [ ] **Add `onClick` to the "Pre-order for Pickup" button in `HeroSection`** — Scroll the user to the menu section. Use `document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })`. Add `id="menu"` to the `<section>` in `MenuSection.jsx`.
+- [x] **Add `onClick` to "Pre-order for Pickup" in `HeroSection`** — Extracted to `handleClick()`. Calls `getElementById("menu")?.scrollIntoView({ behavior: "smooth" })` with optional chaining guard.
+- [x] **Add `id="menu"` to `MenuSection.jsx` section** — Gives the scroll target a stable DOM anchor.
 
 ---
 

@@ -1,6 +1,10 @@
 import HeroBg from "../assets/images/hero-bg.png";
 
 export default function HeroSection() {
+  const handleClick = () => {
+    document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <>
       <section
@@ -19,7 +23,10 @@ export default function HeroSection() {
           </h2>
 
           <div className="flex items-start">
-            <button className="font-body font-normal text-xl rounded-md py-4 px-8 bg-primary-container text-on-primary-container transition-all duration-300 ease-in-out hover:scale-105 hover:cursor-pointeractive:scale-95 ">
+            <button
+              onClick={handleClick}
+              className="font-body font-normal text-xl rounded-md py-4 px-8 bg-primary-container text-on-primary-container transition-all duration-300 ease-in-out hover:scale-105 hover:cursor-pointer active:scale-95 "
+            >
               Pre-order for Pickup
             </button>
           </div>

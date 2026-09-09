@@ -1,12 +1,24 @@
 import FeaturedProductCard from "./FeaturedProductCard";
 import ProductCard from "./ProductCard";
+import useCartStore from "../../store/useCartStore";
 
 // Backend returns price as a raw float (e.g. 7.5) — format it for display
 function formatPrice(price) {
   return "$" + Number(price).toFixed(2);
 }
 
-function ProductGrid({ products = [], onAddToCart }) {
+function ProductGrid({ products = [] }) {
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  function handleAddtoCart(product) {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      lead_time_h: product.lead_time_h,
+    });
+  }
+
   // If no products after filtering, show a friendly empty state
   if (products.length === 0) {
     return (
@@ -36,7 +48,7 @@ function ProductGrid({ products = [], onAddToCart }) {
               imageUrl={product.image_url}
               price={formatPrice(product.price)}
               description={product.description}
-              onAddToCart={() => onAddToCart?.(product)}
+              onAddToCart={() => handleAddtoCart(product)}
             />
           ))}
         </div>
@@ -54,7 +66,7 @@ function ProductGrid({ products = [], onAddToCart }) {
             imageUrl={featuredProduct.image_url}
             price={formatPrice(featuredProduct.price)}
             description={featuredProduct.description}
-            onAddToCart={() => onAddToCart?.(featuredProduct)}
+            onAddToCart={() => handleAddtoCart(featuredProduct)}
           />
         </div>
 
@@ -65,7 +77,7 @@ function ProductGrid({ products = [], onAddToCart }) {
             imageUrl={product.image_url}
             price={formatPrice(product.price)}
             description={product.description}
-            onAddToCart={() => onAddToCart?.(product)}
+            onAddToCart={() => handleAddtoCart(product)}
           />
         ))}
       </div>
