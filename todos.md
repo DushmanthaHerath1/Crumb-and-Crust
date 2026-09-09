@@ -92,11 +92,12 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 1.1 — Fix `useCartStore`
 
-- [ ] **Fix `addToCart` duplicate bug** — Change `addToCart` in `useCartStore.js` so it checks if the item `id` already exists in `cart`. If yes, increment `quantity`. If no, push a new entry with `quantity: 1`.
-- [ ] **Add `removeFromCart(itemId)` action** — Removes an item entirely from the cart array (needed by cart drawer).
-- [ ] **Add `updateQuantity(itemId, quantity)` action** — Sets a specific item to a given quantity; removes the item if quantity reaches 0 (needed by cart drawer).
-- [ ] **Add `cartItemCount` derived value** — A computed total (sum of all quantities) that the `Navbar` badge will read.
-- [ ] **Add `cartTotal` derived value** — Computes `sum(item.price * item.quantity)` for display in the cart drawer and checkout form.
+- [x] **Fix `addToCart` duplicate bug** — `addToCart` checks by `id`; increments quantity if found, pushes `{ ...product, quantity: 1 }` if new.
+- [x] **Add `removeFromCart(itemId)` action** — Filters out the item by id.
+- [x] **Add `updateQuantity(itemId, quantity)` action** — Updates quantity; removes item if quantity reaches 0.
+- [x] **Add `cartItemCount` derived value** — Function: `cart.reduce((sum, item) => sum + item.quantity, 0)`. Navbar badge reads this.
+- [x] **Add `cartTotal` derived value** — Function: `cart.reduce((sum, item) => sum + item.price * item.quantity, 0)`. Display-only; backend always recomputes the authoritative total.
+- [x] **Add `isCartOpen` + `openCart` / `closeCart`** — Boolean + two setters for the CartDrawer slide-in.
 
 ### 1.2 — Fix `App.jsx` (Data Plumbing)
 
