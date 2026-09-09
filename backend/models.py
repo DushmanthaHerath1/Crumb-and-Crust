@@ -21,8 +21,12 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     price = Column(Float, nullable=False)
+    category = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
     lead_time_h = Column(Integer, default=48)  # 48 fermentation rule
     is_active = Column(Boolean, default=True)
+    is_featured = Column(Boolean,default=False)
 
 
 # Business rules table(Capacity & availability)
@@ -48,6 +52,7 @@ class Order(Base):
     status = Column(
         String, default="pending"
     )  ## pending, paid, ready_for_pickup, completed
+    total_price = Column(Float, nullable=True)
     stripe_session_id = Column(String, unique=True, nullable=True)
     paid_at = Column(DateTime, nullable=True)
     idempotency_key = Column(String, unique=True, index=True, nullable=True)
@@ -77,6 +82,7 @@ class AdminUser(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="staff")
+    full_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 

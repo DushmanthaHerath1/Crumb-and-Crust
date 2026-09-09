@@ -12,7 +12,7 @@ from dependencies import get_current_admin
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import Date, cast
+from sqlalchemy import Date, cast, func
 from sqlalchemy.orm import Session
 
 app = FastAPI(title="Crumb & Crust API")
@@ -34,12 +34,78 @@ def read_root():
     return {"message": "Welcome to Crumb & Crust"}
 
 
+def resolve_featured_id(products, db):
+    """
+    decides which product_id should be featured.
+    Priority:
+    * any product with is_featured-True in database wins immediately
+    * product with most quantity sold in paid orders TODAY
+    * Product with most quantity sold all-time (fallback)
+    * First product with most quantity sold all time 
+    * first product in the list 
+    """
+    # manual override
+    manual=next((p for p in products if p.is_featured), None)
+    if manual:
+        return manual.id
+
+    # today's best seller
+    today = datetime.now().date()
+    today_best = (
+        db.query(
+            models.OrderItem.product_id,
+            func.sum(models.OrderItem.quantity).label("qty")
+        ).join(models.Order).filter(
+            models.Order.status == "paid",
+            cast(models.Order.pickup_datetime, Date) == today,
+        ).group_by(models.OrderItem.product_id).order_by(
+            func.sum(models.OrderItem.quantity).desc()
+        ).first()
+    )
+    if today_best:
+        return today_best.product_id
+
+    
+    #fallback all-time best seller
+    alltime_best = (
+        db.query(
+            models.OrderItem.product_id,
+            func.sum(models.OrderItem.quantity).label("qty"),
+        ).join(models.Order).filter(
+            models.Order.status =="paid",
+        ).group_by(
+            models.OrderItem.product_id
+        ).order_by(
+            func.sum(models.OrderItem.quantity).desc()
+        ).first()
+    )
+    if alltime_best:
+        return alltime_best.product_id
+
+    #if not orders at all, return first item
+    return products[0].id if products else None
+
+
 @app.get("/api/menu", response_model=List[schemas.ProductResponse])
 def get_menu(db: Session = Depends(get_db)):
     """Get all product data from database and send to front-end"""
 
     products = db.query(models.Product).filter(models.Product.is_active.is_(True)).all()
-    return products
+    
+    if not products:
+        return []
+
+    featured_id = resolve_featured_id(products, db)
+
+    result = []
+    for p in products:
+        item = schemas.ProductResponse.model_validate(p) 
+        if p.id == featured_id:
+            item.is_featured = True
+        result.append(item)
+    
+    return result
+
 
 
 @app.get("/api/business-rules", response_model=schemas.BusinessRuleResponse)
@@ -145,7 +211,7 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
             )
             if not product or not product.is_active:
                 raise HTTPException(
-                    status_code=201,
+                    status_code=400,
                     detail=f"Product ID {item.product_id} is unavailable.",
                 )
 
@@ -174,6 +240,7 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
             customer_json=customer_data_dict,
             pickup_datetime=order_data.requested_pickup_datetime,
             status="pending",
+            total_price=calculated_total,
             idempotency_key=order_data.idempotency_key,  # Parsing idempotency key
         )
         db.add(new_order)
@@ -184,7 +251,6 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
                 order_id=new_order.id,
                 product_id=v_item["product"].id,
                 quantity=v_item["quantity"],
-                # unit_price=v_item["product"].price,
                 subtotal=v_item["product"].price * v_item["quantity"],
             )
             db.add(new_item)
@@ -315,7 +381,7 @@ def admin_login(
         raise HTTPException(
             status_code=401,
             detail="invalid email or password",
-            headers={"WWW-Authenticate", "Bearer"},
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     access_token = security.create_access_token(
@@ -326,7 +392,7 @@ def admin_login(
 
 
 # test: endpoint for view orders (secured)
-@app.get("/api/admin/orders")
+@app.get("/api/admin/orders", response_model=List[schemas.AdminOrderResponse])
 def get_all_orders(
     db: Session = Depends(get_db),
     current_admin: models.AdminUser = Depends(get_current_admin),
@@ -338,7 +404,7 @@ def get_all_orders(
     return orders
 
 
-@app.patch("/api/admin/orders/{order_id}/status")
+@app.patch("/api/admin/orders/{order_id}/status", response_model=schemas.AdminOrderResponse)
 def update_order_status(
     order_id: int,
     status_update: schemas.OrderStatusUpdate,
@@ -368,6 +434,7 @@ def update_order_status(
         db.add(history_record)
         db.commit()
         db.refresh(order)
+        return order
     except Exception as e:
         db.rollback()  # restore changes
         raise HTTPException(status_code=500, detail=f"Database transaction failed{e}")

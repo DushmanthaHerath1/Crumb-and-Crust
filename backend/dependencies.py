@@ -20,7 +20,7 @@ def get_current_admin(
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearber"},
+        headers={"WWW-Authenticate": "Bearer"},
     )
 
     try:

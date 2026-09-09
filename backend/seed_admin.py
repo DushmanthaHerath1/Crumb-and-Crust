@@ -18,6 +18,7 @@ def seed_admin():
         email="admin@crumbandcrust.com",
         hashed_password=get_password_hash("admin123"),
         role="owner",
+        full_name="Admin Owner",
     )
 
     db.add(new_admin)

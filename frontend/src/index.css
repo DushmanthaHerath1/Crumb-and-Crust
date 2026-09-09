@@ -1,1 +1,82 @@
 @import "tailwindcss";
+
+@theme {
+  /* --- Colors --- */
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-bright: #393939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #20201f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353535;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #e0c0b2;
+
+  --color-primary: #ffb595;
+  --color-on-primary: #571e00;
+  --color-primary-container: #ee671c;
+  --color-primary-container-hover: #ec8f50;
+  --color-primary-container-active: #ea560e;
+  --color-on-primary-container: #4c1a00;
+
+  --color-secondary: #ffb783;
+  --color-on-secondary: #4f2500;
+  --color-secondary-container: #db7619;
+
+  --color-outline: #a88a7e;
+  --color-error: #ffb4ab;
+  --color-background: #131313;
+
+  /* --- Fonts --- */
+  --font-heading: "Libre Caslon Text", serif;
+  --font-body: "Hanken Grotesk", sans-serif;
+
+  /* --- Border Radius --- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* --- Spacing --- */
+  --spacing-unit: 8px;
+  --spacing-gutter: 24px;
+  --spacing-container-desktop: 80px;
+  --spacing-container-mobile: 20px;
+  --spacing-section-gap: 120px;
+}
+
+/* --- Custom Typography Utilities --- */
+/* Tailwind v4 uses @utility to create complex, multi-property classes */
+@utility text-display-lg {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+@utility text-display-lg-mobile {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@utility text-body-lg {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility text-label-caps {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
