@@ -137,14 +137,15 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 > Goal: A slide-in cart panel that shows items, quantities, a subtotal, and a "Proceed to Checkout" button.
 
-- [ ] **Create `CartDrawer.jsx`** in `src/components/`. A fixed, right-side slide-in panel rendered when open.
-- [ ] **Read cart state from `useCartStore`** — Display each item: name, quantity stepper (+ / −), item subtotal, and a remove button.
-- [ ] **Display `cartTotal`** from the Zustand derived value at the bottom of the drawer.
-- [ ] **Add a "Proceed to Checkout" button** that navigates to `/checkout` (React Router `useNavigate`).
-- [ ] **Add a "Clear Cart" button** that calls `useCartStore.clearCart()`.
-- [ ] **Wire drawer open/close state** — Add `isCartOpen` boolean to `useCartStore` (or a small UI slice). Navbar cart icon sets it to `true`. `CartDrawer` renders an X close button.
-- [ ] **Style the drawer** — Slide from right (`translate-x-full` to `translate-x-0`), dark semi-transparent overlay behind it, consistent with the dark design system.
-- [ ] **Render an empty state** when the cart has no items — e.g. "Your cart is empty. Start adding some bakes!"
+- [x] **Create `CartDrawer.jsx`** — Fixed right-side panel in `src/components/cart-drawer/`. Refactored item rows into `CartItem.jsx` in the same folder.
+- [x] **Read cart state from `useCartStore`** — `cart`, `isCartOpen`, `closeCart`, `removeFromCart`, `updateQuantity`, `clearCart` all wired via selectors.
+- [x] **Display `cartTotal`** — `cartTotal()` called in selector, rendered in footer as `$xx.xx`.
+- [x] **Add a "Proceed to Checkout" button** — Rendered in footer. Navigation wired in Phase 3 when React Router is set up.
+- [x] **Add a "Clear Cart" button** — Calls `clearCart()` on click. Hover goes red (`hover:text-error`) as danger affordance.
+- [x] **Wire drawer open/close state** — `isCartOpen` in store. Navbar `openCart()` on cart icon click. Overlay + × button both call `closeCart()`.
+- [x] **Style the drawer** — Slide from right (`translate-x-full` → `translate-x-0`), `bg-surface/80 backdrop-blur-sm` overlay, `bg-surface-container-low` panel consistent with dark design system. Full-width on mobile, `w-100` on desktop.
+- [x] **Render an empty state** — `cart.length === 0` renders "Your cart is empty. Start adding some bakes!"
+- [x] **Product thumbnails in cart** — `image_url` added to `addToCart` payload in `ProductGrid`. `CartItem` shows image with `bg-surface-container-high` fallback when `null`.
 
 ---
 

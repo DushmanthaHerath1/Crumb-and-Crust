@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
 import MenuSection from "./components/menu-section/MenuSection";
+import CartDrawer from "./components/cart-drawer/CartDrawer";
 
 function App() {
   const [menu, setMenu] = useState([]);
@@ -31,6 +32,7 @@ function App() {
       <Navbar />
       <HeroSection />
       <MenuSection menu={menu} isLoading={isLoading} error={error} />
+      <CartDrawer />
     </div>
   );
 }

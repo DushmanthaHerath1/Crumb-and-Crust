@@ -16,6 +16,7 @@ function ProductGrid({ products = [] }) {
       name: product.name,
       price: product.price,
       lead_time_h: product.lead_time_h,
+      image_url: product.image_url,
     });
   }
 

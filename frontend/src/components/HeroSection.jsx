@@ -8,7 +8,7 @@ export default function HeroSection() {
   return (
     <>
       <section
-        className="flex flex-col justify-end px-5 pb-12 md:px-20 min-h-[552px] md:min-h-[500px] lg:min-h-[672px]"
+        className="flex flex-col justify-end px-5 pb-12 md:px-20 min-h-138 md:min-h-125 lg:min-h-168"
         style={{
           backgroundImage: `linear-gradient(90deg, rgba(19,19,19,0.9) 0%, rgba(19,19,19,0.2) 100%), url(${HeroBg})`,
           backgroundSize: "cover",
