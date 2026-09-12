@@ -1,7 +1,10 @@
 import useCartStore from "../../store/useCartStore";
+import { useNavigate } from "react-router-dom";
 import CartItem from "./CartItem";
 
 function CartDrawer() {
+  const navigate = useNavigate();
+
   const cart = useCartStore((state) => state.cart);
   const cartTotal = useCartStore((state) => state.cartTotal());
   const isCartOpen = useCartStore((state) => state.isCartOpen);
@@ -101,6 +104,10 @@ function CartDrawer() {
 
           {/* Proceed to Checkout — primary action */}
           <button
+            onClick={() => {
+              navigate("/checkout");
+              closeCart();
+            }}
             className="
             w-full rounded-md bg-primary-container py-3 font-body text-sm
             font-normal tracking-widest text-on-primary-container

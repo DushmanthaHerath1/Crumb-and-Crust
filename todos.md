@@ -155,9 +155,10 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 3.1 — Page Setup
 
-- [ ] **Create `CheckoutPage.jsx`** in `src/pages/`.
-- [ ] **Add route `/checkout` in `App.jsx`** using React Router `<Route path="/checkout" element={<CheckoutPage />} />`.
-- [ ] **Guard the route** — If the cart is empty (read from Zustand), redirect back to `/` automatically.
+- [x] **Create `CheckoutPage.jsx`** — Placeholder exists at `src/pages/`. Full form built in 3.2.
+- [x] **Add route `/checkout` in `App.jsx`** — `BrowserRouter` + `Routes` added. `StorefrontPage` at `/`. `CartDrawer` and `Navbar` outside `<Routes>` so they persist across all routes.
+- [x] **Wire "Proceed to Checkout"** — `useNavigate("/checkout")` + `closeCart()` wired in `CartDrawer`. Cart closes cleanly on navigation.
+- [x] **Extract `StorefrontPage.jsx`** — Moved menu fetch + Hero + MenuSection into `src/pages/StorefrontPage.jsx`. `App.jsx` is now a pure routing shell.
 
 ### 3.2 — Order Summary Sidebar
 
