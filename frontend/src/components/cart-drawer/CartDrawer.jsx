@@ -2,6 +2,7 @@ import useCartStore from "../../store/useCartStore";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import CartItem from "./CartItem";
+import { money } from "../../utils/formatter";
 
 function CartDrawer() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ function CartDrawer() {
               Subtotal
             </span>
             <span className="font-body text-base font-bold text-on-surface">
-              ${cartTotal.toFixed(2)}
+              {money(cartTotal)}
             </span>
           </div>
 

@@ -1,11 +1,7 @@
 import FeaturedProductCard from "./FeaturedProductCard";
 import ProductCard from "./ProductCard";
 import useCartStore from "../../store/useCartStore";
-
-// Backend returns price as a raw float (e.g. 7.5) — format it for display
-function formatPrice(price) {
-  return "$" + Number(price).toFixed(2);
-}
+import { money } from "../../utils/formatter";
 
 function ProductGrid({ products = [] }) {
   const addToCart = useCartStore((state) => state.addToCart);
@@ -47,7 +43,7 @@ function ProductGrid({ products = [] }) {
               key={product.id}
               name={product.name}
               imageUrl={product.image_url}
-              price={formatPrice(product.price)}
+              price={money(product.price)}
               description={product.description}
               onAddToCart={() => handleAddtoCart(product)}
             />
@@ -65,7 +61,7 @@ function ProductGrid({ products = [] }) {
             key={featuredProduct.id}
             name={featuredProduct.name}
             imageUrl={featuredProduct.image_url}
-            price={formatPrice(featuredProduct.price)}
+            price={money(featuredProduct.price)}
             description={featuredProduct.description}
             onAddToCart={() => handleAddtoCart(featuredProduct)}
           />
@@ -76,7 +72,7 @@ function ProductGrid({ products = [] }) {
             key={product.id}
             name={product.name}
             imageUrl={product.image_url}
-            price={formatPrice(product.price)}
+            price={money(product.price)}
             description={product.description}
             onAddToCart={() => handleAddtoCart(product)}
           />

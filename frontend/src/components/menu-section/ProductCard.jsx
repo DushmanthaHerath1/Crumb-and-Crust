@@ -30,11 +30,15 @@ function ProductCard({
       <div className="flex flex-col gap-3 p-6 font-body">
         <div className="flex items-center justify-between gap-4">
           <h4 className="text-xl leading-normal text-on-surface">{name}</h4>
-          <span className="shrink-0 text-xl leading-normal text-primary">{price}</span>
+          <span className="shrink-0 text-xl leading-normal text-primary">
+            {price}
+          </span>
         </div>
 
         {description && (
-          <p className="text-sm leading-relaxed text-on-surface-variant">{description}</p>
+          <p className="text-sm leading-relaxed text-on-surface-variant">
+            {description}
+          </p>
         )}
 
         <AddToCartButton onClick={onAddToCart} size="responsive" />

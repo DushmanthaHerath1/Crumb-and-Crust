@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { money } from "../../utils/formatter";
 
 function CartItem({ item, onIncrease, onDecrease, onRemove }) {
   return (
@@ -20,7 +21,7 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
           {item.name}
         </span>
         <span className="font-body text-sm text-primary">
-          ${(item.price * item.quantity).toFixed(2)}
+          {money(item.price * item.quantity)}
         </span>
       </div>
 
