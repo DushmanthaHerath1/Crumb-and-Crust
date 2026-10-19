@@ -3,6 +3,8 @@ import HeroSection from "../components/HeroSection";
 import MenuSection from "../components/menu-section/MenuSection";
 
 function StorefrontPage() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   const [menu, setMenu] = useState([]);
   const [error, setError] = useState(null);
 
@@ -11,7 +13,7 @@ function StorefrontPage() {
   useEffect(() => {
     async function fetchMenu() {
       try {
-        const res = await fetch("http://localhost:8000/api/menu");
+        const res = await fetch(`${BACKEND_URL}/api/menu`);
         const data = await res.json();
         setMenu(data);
       } catch (err) {

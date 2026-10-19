@@ -58,14 +58,14 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 0.3 — Backend Route Fixes
 
-- [ ] **`POST /api/orders` — wrong HTTP status on invalid product** — ~~Line 148 in `main.py` raises `HTTPException(status_code=201, ...)` for an unavailable product.~~ Fixed to `status_code=400`.
+- [x] **`POST /api/orders` — wrong HTTP status on invalid product** — ~~Line 148 in `main.py` raises `HTTPException(status_code=201, ...)` for an unavailable product.~~ Fixed to `status_code=400`.
 - [x] **`POST /api/orders` — store `total_price` on the order** — `total_price=calculated_total` is now set on `new_order` before `db.flush()`.
 - [x] **`POST /api/orders` — remove `unit_price` dead code** — Removed the commented-out `unit_price` line; `subtotal` is all that's stored.
 - [x] **`PATCH /api/admin/orders/{id}/status` — missing response model** — Added `response_model=schemas.AdminOrderResponse`; endpoint now returns the updated order.
 - [ ] **`GET /api/admin/orders` — add date filter query param** — Dashboard needs to filter by pickup date. Add an optional `date: Optional[date] = None` query param. If provided, filter `Order.pickup_datetime` by that date.
 - [ ] **`GET /api/admin/orders` — add status filter** — Add optional `status: Optional[str] = None` query param to allow the kitchen to view only `paid` orders (the default dashboard view).
 - [x] **`POST /api/admin/login` — fix `headers` syntax bug** — Fixed `headers={"WWW-Authenticate", "Bearer"}` (set literal) to `headers={"WWW-Authenticate": "Bearer"}` (dict).
-- [ ] **`dependencies.py` — typo in error message** — Line 23: `"Bearber"` should be `"Bearer"`.
+- [x] **`dependencies.py` — typo in error message** — Line 23: `"Bearber"` fixed to `"Bearer"`.
 - [ ] **Add `GET /api/orders/{session_id}` endpoint** — The success page must confirm order status by querying the backend with the Stripe session ID (never trust URL params). Add this public, unauthenticated route that returns the order status and pickup time for a given `stripe_session_id`.
 - [ ] **Add `GET /api/availability` endpoint** — Public, unauthenticated. Accepts a `?date=YYYY-MM-DD` query param. Returns whether that date is at capacity (boolean `is_fully_booked` and `remaining_slots` count). Used by the frontend date picker to disable fully-booked dates _before_ the user submits. Backend still validates capacity on `POST /api/orders` — this is a UX convenience only.
 - [ ] **Add `POST /api/admin/products/{id}/sold-out-today` toggle endpoint** — Since we dropped `is_sold_out_today`, this is no longer applicable; staff use `is_active` to disable a product.
@@ -116,9 +116,9 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 1.4 — Wire `AddToCartButton` to `useCartStore`
 
-- [ ] **Import and call `useCartStore` in `ProductGrid`** — Destructure `addToCart`. Create a `handleAddToCart(product)` function that calls `addToCart({ id: product.id, name: product.name, price: product.price, lead_time_h: product.lead_time_h, quantity: 1 })`. Include `lead_time_h` so the checkout page can compute max lead time.
-- [ ] **Pass `handleAddToCart` as `onAddToCart` to cards** — Replace the current `onAddToCart?.()` callbacks in `ProductGrid` with `() => handleAddToCart(product)`.
-- [ ] **Remove `onAddToCart` prop from `App.jsx` and `MenuSection` chain** — `ProductGrid` now owns this responsibility directly via Zustand. Clean up any unused prop forwarding.
+- [x] **Import and call `useCartStore` in `ProductGrid`** — Destructured `addToCart`. Created `handleAddtoCart(product)` calling `addToCart({ id, name, price, lead_time_h, image_url })`.
+- [x] **Pass `handleAddToCart` as `onAddToCart` to cards** — Wired to `FeaturedProductCard` and `ProductCard` in `ProductGrid.jsx`.
+- [x] **Remove `onAddToCart` prop from `App.jsx` and `MenuSection` chain** — `ProductGrid` owns this directly via Zustand; prop forwarding removed.
 
 ### 1.5 — Wire Cart Count to `Navbar`
 
@@ -155,8 +155,8 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 3.1 — Page Setup
 
-- [x] **Create `CheckoutPage.jsx`** — Placeholder exists at `src/pages/`. Full form built in 3.2.
-- [x] **Add route `/checkout` in `App.jsx`** — `BrowserRouter` + `Routes` added. `StorefrontPage` at `/`. `CartDrawer` and `Navbar` outside `<Routes>` so they persist across all routes.
+- [ ] **Create `CheckoutPage.jsx`** — Shell/page in `src/pages/CheckoutPage.jsx`. Full form built in 3.2.
+- [ ] **Add route `/checkout` in `App.jsx`** — Register `<Route path="/checkout" element={<CheckoutPage />} />` inside `<Routes>`.
 - [x] **Wire "Proceed to Checkout"** — `useNavigate("/checkout")` + `closeCart()` wired in `CartDrawer`. Cart closes cleanly on navigation.
 - [x] **Extract `StorefrontPage.jsx`** — Moved menu fetch + Hero + MenuSection into `src/pages/StorefrontPage.jsx`. `App.jsx` is now a pure routing shell.
 

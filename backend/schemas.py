@@ -1,3 +1,4 @@
+from sqlalchemy import label
 from sqlalchemy import false
 from datetime import datetime
 from typing import List, Literal, Optional
@@ -103,3 +104,20 @@ class AdminResponse(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     new_status: Literal["ready_for_pickup", "completed", "failed", "refunded"]
+
+class SlotOut(BaseModel):
+    start: datetime
+    end: datetime
+    label: str
+    available: Optional[bool] = None
+    reason: Optional[str] = None
+
+class DayOut(BaseModel):
+    date: str
+    slots: List[SlotOut]
+
+class AvailabilityResponse(BaseModel):
+    lead_time_hours: int
+    timezone: str
+    days: List[DayOut]
+

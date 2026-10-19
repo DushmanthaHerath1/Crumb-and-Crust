@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime,time, timezone, timedelta
+from zoneinfo import ZoneInfo
 from typing import List
 
 import models
@@ -19,6 +20,8 @@ app = FastAPI(title="Crumb & Crust API")
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+BAKERY_TZ = ZoneInfo(os.getenv("BAKERY_TZ"))
+SLOT_MINUTES = 120
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +36,81 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to Crumb & Crust"}
 
+def _to_utc(dt: datetime) -> datetime:
+    """Ensure timezone informations of slots came from db and add UTC if there are not"""
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt.astimezone(timezone.utc)
+
+def _fmt(dt: datetime) -> str:
+    """format the time and return it as a string"""
+    return dt.strftime("%I:%M %p").lstrip("0")
+
+def booked_counts(db) -> dict:
+    """Orders per bakery-local date. Abandoned/failed orders don't use up capacity."""
+    rows = db.query(models.Order.pickup_datetime).filter(
+        models.Order.status.notin_(["failed", "refunded"])
+    ).all()
+
+    counts = {}
+    for (dt,) in rows:
+        d = _to_utc(dt).astimezone(BAKERY_TZ).date().isoformat()
+        counts[d] = counts.get(d, 0) + 1
+    return counts
+
+def build_availability(rule, lead_hours: int, db, now_utc=None) -> list:
+    now_utc = now_utc or datetime.now(timezone.utc)
+    today = now_utc.astimezone(BAKERY_TZ).date()
+    oh, om = map(int, rule.opening_hours_json["start"].split(":"))
+    ch, cm = map(int, rule.opening_hours_json["end"].split(":"))
+    counts = booked_counts(db)
+
+    days = []
+    for i in range (rule.max_advance_days + 1):
+        day = today + timedelta(days=i)
+        iso = day.isoformat()
+        if iso in rule.blackout_dates:
+            day_reason = "closed"
+        elif counts.get(iso, 0) >= rule.daily_order_cap:
+            day_reason = "fully_booked"
+        else:
+            day_reason = None
+
+        cursor = datetime.combine(day, time(oh, om), tzinfo=BAKERY_TZ)
+        close = datetime.combine(day, time(ch, cm), tzinfo=BAKERY_TZ)
+        slots = []
+        while cursor + timedelta(minutes=SLOT_MINUTES) <= close:
+            end = cursor + timedelta(minutes=SLOT_MINUTES)
+            start_utc = cursor.astimezone(timezone.utc)
+            reason = day_reason
+            if reason is None and (start_utc - now_utc).total_seconds() < lead_hours *3600:
+                reason = "lead_time"
+            slots.append({
+                "start": start_utc,
+                "end": end.astimezone(timezone.utc),
+                "label": f"{_fmt(cursor)} – {_fmt(end)}",
+                "available": reason is None,
+                "reason": reason,
+            })
+            cursor = end
+        days.append({"date": iso, "slots": slots})
+    return days
+
+
+
+def validate_pickup(req_dt: datetime, rule, lead_hours: int, db):
+    """Single source of truth: the order is valid only if it is an available slot."""
+    req_utc = _to_utc(req_dt)
+    messages ={
+        "closed": "Sorry, we are closed on the requested date.",
+        "fully_booked": "Sorry, we acre fully booked for this date.",
+        "lead_time": f"Minimum lead time not met. Your cart requires at least {lead_hours} hours of preparation.",
+    }
+    for day in build_availability(rule, lead_hours, db):
+        for s in day["slots"]:
+            if s["start"] == req_utc:
+                if not s["available"]:
+                    raise HTTPException(status_code=400, detail=messages[s["reason"]])
+                return
+    raise HTTPException(status_code=400, detail="Requested time is not a valid pickup slot.")
 
 def resolve_featured_id(products, db):
     """
@@ -150,6 +228,33 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
     Compare an order from front-end with business rules, calculate total according to the Zero-Trust rule and finally send to the database if and only if the order is a complate order
     """
 
+    #check for existing order by idempotency key before daily cap ckeck
+    existing_order = (
+        db.query(models.Order)
+        .filter(models.Order.idempotency_key == order_data.idempotency_key)
+        .first()
+    )
+
+    if existing_order:
+        checkout_url = None
+        if stripe.api_key == "sk_test_dummy_key_for_mocking" or not stripe.api_key:
+            checkout_url = f"{FRONTEND_URL}/mock-checkout?session_id={existing_order.stripe_session_id}"
+        elif existing_order.stripe_session_id:
+            try:
+                stripe_session = stripe.checkout.Session.retrieve(
+                    existing_order.stripe_session_id
+                )
+                checkout_url = stripe_session.url
+            except Exception:
+                pass
+        return{
+            "id": existing_order.id,
+            "status": existing_order.status,
+            "pickup_datetime": existing_order.pickup_datetime,
+            "stripe_session_id": existing_order.stripe_session_id,
+            "checkout_url": checkout_url
+        }
+
     rule = db.query(models.BusinessRule).first()
 
     if not rule:
@@ -158,50 +263,11 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
             detail="System configuration error: Business rules are not defined in the database.",
         )
 
-    pickup_date_str = order_data.requested_pickup_datetime.date().isoformat()
-
-    if rule:
-        if pickup_date_str in rule.blackout_dates:
-            raise HTTPException(
-                status_code=400, detail="Sorry, we are closed on the requested date."
-            )
-
-        days_ahead = (
-            order_data.requested_pickup_datetime.date() - datetime.now().date()
-        ).days
-        if days_ahead > rule.max_advance_days:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Orders can only be placed up to {rule.max_advance_days} days in advance.",
-            )
-
-        current_orders_count = (
-            db.query(models.Order)
-            .filter(
-                cast(models.Order.pickup_datetime, Date)
-                == order_data.requested_pickup_datetime.date()
-            )
-            .count()
-        )
-        if current_orders_count >= rule.daily_order_cap:
-            raise HTTPException(
-                status_code=400, detail="Sorry, we are fully booked for this date."
-            )
-
     try:
         max_lead_time_hours = 0
         calculated_total = 0
         validated_items = []
 
-        # New Idempotency Ckeck
-        existing_order = (
-            db.query(models.Order)
-            .filter(models.Order.idempotency_key == order_data.idempotency_key)
-            .first()
-        )
-
-        if existing_order:
-            return existing_order
 
         for item in order_data.cart_items:
             product = (
@@ -223,16 +289,8 @@ def create_order(order_data: schemas.OrderCreate, db: Session = Depends(get_db))
 
             validated_items.append({"product": product, "quantity": item.quantity})
 
-        time_difference = order_data.requested_pickup_datetime.replace(
-            tzinfo=None
-        ) - datetime.now().replace(tzinfo=None)
-        hours_difference = time_difference.total_seconds() / 3600
-
-        if hours_difference < max_lead_time_hours:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Minimum lead time not met. Your cart requires at least {max_lead_time_hours} hours of preparation.",
-            )
+        # Single source of truth validation:
+        validate_pickup(order_data.requested_pickup_datetime, rule, max_lead_time_hours, db)
 
         customer_data_dict = order_data.customer_details.model_dump()
 
@@ -438,3 +496,19 @@ def update_order_status(
     except Exception as e:
         db.rollback()  # restore changes
         raise HTTPException(status_code=500, detail=f"Database transaction failed{e}")
+
+
+@app.get("/api/availability", response_model=schemas.AvailabilityResponse)
+def get_availability(product_ids: str ="", db:Session = Depends(get_db)):
+    ids = [int(i) for i in product_ids.split(",") if i.strip().isdigit()]
+    products = db.query(models.Product).filter(
+        models.Product.id.in_(ids), models.Product.is_active.is_(True)
+    ).all()
+    lead_hours = max((p.lead_time_h for p in products), default=0)
+
+    rule = get_business_rules(db)
+    return{
+        "lead_time_hours": lead_hours,
+        "timezone": str(BAKERY_TZ),
+        "days": build_availability(rule, lead_hours, db)
+    }
