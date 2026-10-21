@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import HeroSection from "../components/HeroSection";
 import MenuSection from "../components/menu-section/MenuSection";
+import Gallery from "../components/gallery-section/Gallery";
+import BakeryLocation from "../components/location-section/BakeryLocation";
 
 function StorefrontPage() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -30,6 +32,8 @@ function StorefrontPage() {
     <>
       <HeroSection />
       <MenuSection menu={menu} isLoading={isLoading} error={error} />
+      <Gallery />
+      <BakeryLocation />
     </>
   );
 }

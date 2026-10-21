@@ -1,4 +1,4 @@
-﻿"""
+"""
 reset_db.py — Full database wipe + re-seed for development.
 
 WARNING: This deletes ALL data from every table. Dev use only.
@@ -47,10 +47,10 @@ def seed_products(db):
                 "deeply caramelised crust, wild open crumb, and complex tang. "
                 "Made with 20% freshly milled heritage wheat."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1QHB9y4vWBIQhdnLOKWazcl5OfKnI7iE8&sz=w800",
             lead_time_h=48,
             is_active=True,
-            is_featured=False,
+            is_featured=True,
         ),
         models.Product(
             name="Special Sourdough",
@@ -61,10 +61,9 @@ def seed_products(db):
                 "walnuts & dried fig, roasted garlic & rosemary, or seeded rye. "
                 "Check with us for this week's flavour."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1dfgFk0OGKdQfC4M3CpOW6aOkLXwx8-Tw&sz=w800",
             lead_time_h=48,
             is_active=True,
-            is_featured=True,
         ),
         models.Product(
             name="Daily Baguette",
@@ -75,10 +74,9 @@ def seed_products(db):
                 "crackly golden crust with a chewy, hole-riddled interior. "
                 "Perfect torn and eaten straight from the bag."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1PSodIC7nL_ePe4XkgW0BiCizTwk-HZn_&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Plain Baguette",
@@ -89,10 +87,9 @@ def seed_products(db):
                 "salt, and time. Light and mild — ideal for sandwiches or alongside "
                 "soups and cheese boards."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1HawyZWaQd4nB47hL6n3BRkTWH1G8OUtw&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Olive Focaccia",
@@ -103,10 +100,9 @@ def seed_products(db):
                 "rosemary, and a generous pour of extra-virgin olive oil. "
                 "Slightly crisp on the outside, fluffy and airy within."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1EewHiMR_MjM18JzH2sVxl2dsSJgVtEH8&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Black Garlic Focaccia",
@@ -117,10 +113,9 @@ def seed_products(db):
                 "black garlic paste and scattered with sea salt flakes. Rich, "
                 "umami-forward, and deeply savoury."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1BHDp2hCtcnBLkD6gg7hlBmunxC_3ko7g&sz=w800",
             lead_time_h=24,
-            is_active=False,  # Coming soon — not yet on the menu
-            is_featured=False,
+            is_active=False,
         ),
         # ── Pastries ──────────────────────────────────────────────────────────
         models.Product(
@@ -132,10 +127,9 @@ def seed_products(db):
                 "finished with toasted flaked almonds and a dusting of icing sugar. "
                 "Rich and indulgent."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1fGrNkbHTI-AxzForAxHf-uGU3SOq2H2S&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Regular Croissant",
@@ -146,10 +140,9 @@ def seed_products(db):
                 "honeycomb-textured shell with a soft, doughy pull-apart interior. "
                 "Simple, perfected."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=13rO0dOnBcUmpxn2zUlWlJ_ybg0ySyFJj&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Pain au Chocolat",
@@ -160,10 +153,9 @@ def seed_products(db):
                 "laminated dough. Shatteringly crisp outside, molten chocolate "
                 "at the centre when warm."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1DWwIJtWUrK7UJ8kC3pBR5moyVGvd2qJ2&sz=w800",
             lead_time_h=24,
             is_active=True,
-            is_featured=False,
         ),
         models.Product(
             name="Pain au Vanilla",
@@ -174,10 +166,9 @@ def seed_products(db):
                 "vanilla custard cream. Delicate, fragrant, and lightly sweet — "
                 "a softer alternative to pain au chocolat."
             ),
-            image_url=None,
+            image_url="https://drive.google.com/thumbnail?id=1qKnGHbvq2Gj9X9Cizk4ELGG0yA3b1iN1&sz=w800",
             lead_time_h=24,
             is_active=False,  # Temporarily off menu — returning next week
-            is_featured=False,
         ),
     ]
     db.add_all(products)

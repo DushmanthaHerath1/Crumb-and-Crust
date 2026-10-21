@@ -11,11 +11,11 @@ function DateOption({ day, index, disabled, selected, onSelect }) {
       ? "Today"
       : index === 1
         ? "Tomorrow"
-        : date.toLocaleDateString("en-US", { weekday: "short" });
+        : date.toLocaleDateString("en-AU", { weekday: "short" });
 
-  const dayLabel = date.toLocaleDateString("en-US", {
-    month: "short",
+  const dayLabel = date.toLocaleDateString("en-AU", {
     day: "numeric",
+    month: "short",
   });
 
   const stateClasses = disabled

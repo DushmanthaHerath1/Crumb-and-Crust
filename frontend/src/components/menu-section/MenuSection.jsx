@@ -10,9 +10,20 @@ function MenuSection({ menu = [], isLoading, error }) {
   ];
 
   const [activeTab, setActiveTab] = useState("All");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const filteredProducts =
     activeTab === "All" ? menu : menu.filter((p) => p.category === activeTab);
+
+  const featured = filteredProducts.find((p) => p.is_featured);
+  const regularProducts = filteredProducts.filter((p) => !p.is_featured);
+
+  const displayedProducts =
+    activeTab === "All" && !isExpanded
+      ? featured
+        ? [featured, ...regularProducts.slice(0, 3)]
+        : filteredProducts.slice(0, 4)
+      : filteredProducts;
 
   return (
     <section
@@ -23,7 +34,10 @@ function MenuSection({ menu = [], isLoading, error }) {
         <MenuFilter
           categories={categories}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setIsExpanded(false);
+          }}
         />
 
         {error && (
@@ -38,9 +52,14 @@ function MenuSection({ menu = [], isLoading, error }) {
           </p>
         )}
 
-        {!isLoading && !error && <ProductGrid products={filteredProducts} />}
+        {!isLoading && !error && <ProductGrid products={displayedProducts} />}
 
-        <TextButton label="See Full Menu" />
+        {activeTab == "All" && filteredProducts.length > 4 && (
+          <TextButton
+            label={isExpanded ? "See less" : "See Full Menu"}
+            onClick={() => setIsExpanded((prev) => !prev)}
+          />
+        )}
       </div>
     </section>
   );

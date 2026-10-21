@@ -16,21 +16,25 @@ All 7 routes are built and working: `GET /api/menu`, `GET /api/business-rules`,
 
 See Phase 0 below.
 
-### 🔧 Frontend (Partially built, mostly disconnected)
+### 🔧 Frontend (Storefront & Customer Checkout Complete ✅)
 
-- `Navbar` — renders, no cart count badge
-- `HeroSection` — renders, CTA button does nothing
-- `MenuSection` — shell, receives `menu` prop but doesn't pass it through correctly (`App.jsx` fetches but never passes down)
-- `MenuFilter` — tab UI works locally, NOT connected to `ProductGrid` filtering
-- `ProductGrid` — accepts `products` prop, price formatting fixed, renders cards
-- `FeaturedProductCard` / `ProductCard` — UI done, `onAddToCart` prop exists but never reaches `useCartStore`
-- `AddToCartButton` — click handler exists but Zustand NOT connected
-- `useCartStore` — `addToCart` pushes duplicates instead of incrementing quantity
-- `App.jsx` — fetches menu on mount, uses `https` instead of `http` (TLS bug), fetched data never passed to `MenuSection`
+- `Navbar` — Fixed with interactive hide-on-scroll, live cart badge, mobile dropdown, smooth anchor scrolling, and brand links.
+- `HeroSection` — Artisanal bakery hero with "Pre-order for Pickup" CTA smoothly scrolling to `#menu`.
+- `MenuSection` — Connected to live backend menu API, category filter tabs, limited to 4 items on "All" tab with "See Full Menu" expand/collapse toggle.
+- `ProductGrid` & Cards — `FeaturedProductCard` & `ProductCard` fully wired to `useCartStore`, image fallbacks, responsive layout.
+- `Gallery` (`InstagramFeedSection`) — Horizontally scrollable photo feed showcasing bakery creations and process shots.
+- `BakeryLocation` — Location details, opening hours, interactive dark Google Maps embed, and direct Google Maps route navigation link.
+- `Footer` — Site footer with location, operating hours, quick links, and copyright info.
+- `CartDrawer` — Slide-in cart panel with item thumbnails, quantity adjustment, line subtotals, clear cart, and checkout navigation.
+- `CheckoutPage` — Full guest form, live validation, custom pickup scheduler (wired to `GET /api/availability`), and PayPal payment integration.
+- `OrderConfirmationPage` — Order confirmation screen with Order ID, formatted pickup datetime, and navigation back to menu.
 
-### ❌ Not Started (Frontend)
+### ❌ Remaining Tasks
 
-Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Success/confirmation page, Admin login page, Kitchen dashboard, React Router setup
+- Staff Admin Login Page (`/admin`)
+- Staff Kitchen Dashboard (`/admin/dashboard`)
+- Admin backend endpoints (date/status filters on `GET /api/admin/orders`)
+- Global error boundary & 404 page
 
 ---
 
@@ -67,7 +71,7 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 - [x] **`POST /api/admin/login` — fix `headers` syntax bug** — Fixed `headers={"WWW-Authenticate", "Bearer"}` (set literal) to `headers={"WWW-Authenticate": "Bearer"}` (dict).
 - [x] **`dependencies.py` — typo in error message** — Line 23: `"Bearber"` fixed to `"Bearer"`.
 - [ ] **Add `GET /api/orders/{session_id}` endpoint** — The success page must confirm order status by querying the backend with the Stripe session ID (never trust URL params). Add this public, unauthenticated route that returns the order status and pickup time for a given `stripe_session_id`.
-- [ ] **Add `GET /api/availability` endpoint** — Public, unauthenticated. Accepts a `?date=YYYY-MM-DD` query param. Returns whether that date is at capacity (boolean `is_fully_booked` and `remaining_slots` count). Used by the frontend date picker to disable fully-booked dates _before_ the user submits. Backend still validates capacity on `POST /api/orders` — this is a UX convenience only.
+- [x] **Add `GET /api/availability` endpoint** — Public, unauthenticated. Implemented in `routers/scheduling.py` with `build_availability` service and `schemas.AvailabilityResponse`.
 - [ ] **Add `POST /api/admin/products/{id}/sold-out-today` toggle endpoint** — Since we dropped `is_sold_out_today`, this is no longer applicable; staff use `is_active` to disable a product.
 
 ### 0.4 — Alembic Migrations
@@ -104,7 +108,7 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 - [x] **Fix `https` to `http` URL bug** — Change `fetch("https://localhost:8000/api/menu")` to `fetch("http://localhost:8000/api/menu")` in `App.jsx`.
 - [x] **Pass `menu` prop down to `MenuSection`** — `App.jsx` already fetches and stores menu data in state but never passes it: add `menu={menu}` to `<MenuSection />`. This one line connects the fetch to the grid.
 - [x] **Add loading and error states to `App.jsx`** — Track `isLoading` and `error` state alongside `menu`. Pass them to `MenuSection` so the UI can show a spinner or error message instead of silently doing nothing.
-- [ ] **Set up React Router in `App.jsx`** — Install `react-router-dom`, wrap the app in `<BrowserRouter>`, and define routes: `/` (storefront), `/checkout` (guest form + date picker), `/success` (confirmation page), `/admin` (login), `/admin/dashboard` (kitchen). _(No `/cart` route — cart is a drawer only.)_
+- [x] **Set up React Router in `App.jsx`** — Installed `react-router-dom`, wrapped in `<BrowserRouter>`, defined routes: `/` (storefront), `/checkout` (checkout page), `/order-confirmed` (order confirmation). Cart is a slide-in drawer.
 
 ### 1.3 — Connect `MenuFilter` to `ProductGrid`
 
@@ -184,36 +188,31 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 - [x] **Build a time slot selector** — After a valid date is chosen, render clickable time slots from `opening_hours_json.start` to `opening_hours_json.end` in 30-minute increments. Disable past slots on the current day.
 - [x] **Require both a date AND a time to be selected** before the form submit button becomes active.
 
-### 3.5 — Form Submission & Stripe Redirect
+### 3.5 — Form Submission & PayPal Payment Flow (Replaced Stripe)
 
-- [ ] **Generate `idempotency_key`** on checkout page mount using `crypto.randomUUID()`.
-- [ ] **Build order payload** — Construct the `POST /api/orders` payload from guest details, cart items, and the selected pickup datetime combined as an ISO 8601 string.
-- [ ] **Submit to `POST /api/orders`** on form submit.
-- [ ] **Handle API error responses** — Show inline error messages for 400 errors (e.g. "Fully booked", "Lead time not met", "Closed on this date"). Map API error strings to friendly copy — never surface raw API error strings.
-- [ ] **Redirect to `checkout_url` on success** — The backend returns `checkout_url` (Stripe hosted page URL). Use `window.location.href = response.checkout_url` to redirect.
-- [ ] **Clear the cart on successful redirect** — Call `useCartStore.clearCart()` before the redirect.
-- [ ] **Add a loading state** while the API call is in-flight and while redirecting to Stripe.
+- [x] **Generate `idempotency_key`** on checkout page mount using `crypto.randomUUID()`.
+- [x] **Build order payload** — Construct the `POST /api/orders` payload from guest details, cart items, and the selected pickup datetime combined as an ISO 8601 string.
+- [x] **Submit to `POST /api/orders`** on form submit — Returns `paypal_order_id`.
+- [x] **Handle API error responses** — Inline error messages for 400/409 errors (e.g. "Fully booked", "Session expired").
+- [x] **PayPal Capture & Approval** — Integrated `@paypal/react-paypal-js`. Calls `POST /api/orders/{paypal_order_id}/capture` upon customer approval in PayPal popup.
+- [x] **Clear the cart on successful checkout** — Calls `useCartStore.clearCart()` before navigating to confirmation page.
+- [x] **Add a loading state** — `isSubmitting` and PayPal SDK loading states handled during order creation and capture.
 
 ---
 
-## PHASE 4 — Success / Confirmation Page (`/success`)
+## PHASE 4 — Order Confirmation Page (`/order-confirmed`)
 
-> Goal: Confirm payment server-side and show the customer their order details.
+> Goal: Confirm payment and show customer their order confirmation and pickup details.
 
-- [ ] **Create `SuccessPage.jsx`** in `src/pages/`.
-- [ ] **Add route `/success` in `App.jsx`**.
-- [ ] **Read `session_id` from URL query params** — Use React Router `useSearchParams()` to get `?session_id=...`.
-- [ ] **Fetch order status from backend** — Call `GET /api/orders/{session_id}` (new endpoint from Phase 0) to confirm the order is `paid`. Never trust URL params directly.
-- [ ] **Show loading state** while the fetch is in-flight.
-- [ ] **Show error state** if the session ID is missing, the order is not found, or status is not `paid`. Provide a link back to the homepage.
-- [ ] **Show confirmation UI on success:**
-  - Order ID
-  - Pickup date and time (formatted nicely, e.g. "Saturday, 6 September 2026 at 9:00 AM")
-  - Customer name
-  - Itemized order summary
-  - Total paid
-  - A friendly message ("We'll have it ready for you!")
-- [ ] **Add a "Back to Home" button**.
+- [x] **Create `OrderConfirmationPage.jsx`** in `src/pages/`.
+- [x] **Add route `/order-confirmed` in `App.jsx`**.
+- [x] **Pass order details via navigation state** — Received directly from verified backend capture endpoint.
+- [x] **Show confirmation UI on success:**
+  - Order ID (`#ORD-{id}`)
+  - Formatted estimated pickup date & time (`formatPickupDateTime`)
+  - Location address reference (123 Gertrude St, Fitzroy)
+  - Success badge & brand messaging
+- [x] **Add an "Order More" button** that navigates back to the storefront (`/`).
 
 ---
 

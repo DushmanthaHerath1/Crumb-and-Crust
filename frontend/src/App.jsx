@@ -5,6 +5,7 @@ import CartDrawer from "./components/cart-drawer/CartDrawer";
 import StorefrontPage from "./pages/StorefrontPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import Footer from "./components/Footer";
 
 function App() {
   const paypalOptions = {
@@ -17,7 +18,7 @@ function App() {
   return (
     <PayPalScriptProvider options={paypalOptions}>
       <BrowserRouter>
-        <div className="bg-surface min-h-screen">
+        <div className="bg-surface min-h-screen pt-16">
           <Navbar />
           <CartDrawer />
           <Routes>
@@ -28,6 +29,7 @@ function App() {
               element={<OrderConfirmationPage />}
             />
           </Routes>
+          <Footer />
         </div>
       </BrowserRouter>
     </PayPalScriptProvider>

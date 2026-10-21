@@ -21,9 +21,10 @@ def seed_products():
                     "deeply caramelised crust, wild open crumb, and complex tang. "
                     "Made with 20% freshly milled heritage wheat."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1QHB9y4vWBIQhdnLOKWazcl5OfKnI7iE8/view?usp=sharing",
                 lead_time_h=48,
                 is_active=True,
+                is_featured=True
             ),
             models.Product(
                 name="Special Sourdough",
@@ -34,7 +35,7 @@ def seed_products():
                     "walnuts & dried fig, roasted garlic & rosemary, or seeded rye. "
                     "Check with us for this week's flavour."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1dfgFk0OGKdQfC4M3CpOW6aOkLXwx8-Tw/view?usp=sharing",
                 lead_time_h=48,
                 is_active=True,
             ),
@@ -47,7 +48,7 @@ def seed_products():
                     "crackly golden crust with a chewy, hole-riddled interior. "
                     "Perfect torn and eaten straight from the bag."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1PSodIC7nL_ePe4XkgW0BiCizTwk-HZn_/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -60,7 +61,7 @@ def seed_products():
                     "salt, and time. Light and mild — ideal for sandwiches or alongside "
                     "soups and cheese boards."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1HawyZWaQd4nB47hL6n3BRkTWH1G8OUtw/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -73,7 +74,7 @@ def seed_products():
                     "rosemary, and a generous pour of extra-virgin olive oil. "
                     "Slightly crisp on the outside, fluffy and airy within."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1EewHiMR_MjM18JzH2sVxl2dsSJgVtEH8/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -86,9 +87,9 @@ def seed_products():
                     "black garlic paste and scattered with sea salt flakes. Rich, "
                     "umami-forward, and deeply savoury."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1BHDp2hCtcnBLkD6gg7hlBmunxC_3ko7g/view?usp=sharing",
                 lead_time_h=24,
-                is_active=False,  # Coming soon — not yet on the menu
+                is_active=False,  
             ),
             # ── Pastries ──────────────────────────────────────────────────────
             models.Product(
@@ -100,7 +101,7 @@ def seed_products():
                     "finished with toasted flaked almonds and a dusting of icing sugar. "
                     "Rich and indulgent."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1fGrNkbHTI-AxzForAxHf-uGU3SOq2H2S/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -113,7 +114,7 @@ def seed_products():
                     "honeycomb-textured shell with a soft, doughy pull-apart interior. "
                     "Simple, perfected."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/13rO0dOnBcUmpxn2zUlWlJ_ybg0ySyFJj/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -126,7 +127,7 @@ def seed_products():
                     "laminated dough. Shatteringly crisp outside, molten chocolate "
                     "at the centre when warm."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1DWwIJtWUrK7UJ8kC3pBR5moyVGvd2qJ2/view?usp=sharing",
                 lead_time_h=24,
                 is_active=True,
             ),
@@ -139,7 +140,7 @@ def seed_products():
                     "vanilla custard cream. Delicate, fragrant, and lightly sweet — "
                     "a softer alternative to pain au chocolat."
                 ),
-                image_url=None,
+                image_url="https://drive.google.com/file/d/1qKnGHbvq2Gj9X9Cizk4ELGG0yA3b1iN1/view?usp=sharing",
                 lead_time_h=24,
                 is_active=False,  # Temporarily off menu — returning next week
             ),
