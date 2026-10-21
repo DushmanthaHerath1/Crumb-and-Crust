@@ -220,15 +220,15 @@ See Phase 0 below.
 
 > Goal: A staff-only login form that authenticates against the backend and stores a JWT.
 
-- [ ] **Create `AdminLoginPage.jsx`** in `src/pages/`.
-- [ ] **Add route `/admin` in `App.jsx`** — If the user already has a valid JWT in localStorage, redirect straight to `/admin/dashboard`.
-- [ ] **Build the login form** — Fields: Email, Password. Controlled inputs with local state.
-- [ ] **Submit to `POST /api/admin/login`** using `application/x-www-form-urlencoded` (OAuth2 form, NOT JSON — the backend uses `OAuth2PasswordRequestForm`).
-- [ ] **On success, store the JWT** — Save `access_token` to `localStorage` (key: `crumb_admin_token`).
-- [ ] **On success, redirect to `/admin/dashboard`**.
-- [ ] **On 401 error, show "Invalid email or password"** — Do not expose the raw error from the backend.
-- [ ] **Create a `useAdminAuth` hook** — Reads the JWT from localStorage, checks if it is expired (decode payload, check `exp`), returns `{ token, isAuthenticated, logout }`. `logout()` clears localStorage and redirects to `/admin`.
-- [ ] **Create a `ProtectedRoute` wrapper component** — Wraps admin-only routes. Uses `useAdminAuth`. Redirects unauthenticated users to `/admin`.
+- [x] **Create `StaffLogin.jsx`** in `src/pages/` (adapted with design tokens, Lucide icons, and reusable components).
+- [x] **Add route `/admin` in `App.jsx`** — If the user already has a valid JWT in localStorage, redirect straight to `/admin/dashboard`.
+- [x] **Build the login form** — Fields: Email, Password. Controlled inputs with local state and validation.
+- [x] **Submit to `POST /api/admin/login`** using `application/x-www-form-urlencoded` (OAuth2 form, NOT JSON — the backend uses `OAuth2PasswordRequestForm`).
+- [x] **On success, store the JWT** — Save `access_token` to `localStorage` (key: `crumb_admin_token`).
+- [x] **On success, redirect to `/admin/dashboard`**.
+- [x] **On 401 error, show "Invalid email or password"** — Do not expose the raw error from the backend.
+- [x] **Create a `useAdminAuth` hook** — Reads the JWT from localStorage, checks if it is expired (decode payload, check `exp`), returns `{ token, isAuthenticated, logout }`. `logout()` clears localStorage and redirects to `/admin`.
+- [x] **Create a `ProtectedRoute` wrapper component** — Wraps admin-only routes. Uses `useAdminAuth`. Redirects unauthenticated users to `/admin`.
 
 ---
 

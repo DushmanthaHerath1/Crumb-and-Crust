@@ -21,7 +21,7 @@ export default function Button({
     primary:
       "bg-primary-container text-on-primary-container shadow-lg shadow-primary-container/15 hover:bg-primary-container-hover active:bg-primary-container-active",
     outline:
-      "border border-primary-container text-primary-container hover:bg-primary-container-hover hover:text-on-primary-container active:bg-primary-container-active",
+      "border border-primary-container text-primary-container hover:text-on-primary-container active:bg-primary-container-active",
     ghost: "bg-transparent text-on-surface hover:bg-surface-container-high",
   };
 

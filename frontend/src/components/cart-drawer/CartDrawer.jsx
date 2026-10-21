@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import CartItem from "./CartItem";
 import { money } from "../../utils/formatter";
+import Button from "../ui/Button";
 
 function CartDrawer() {
   const navigate = useNavigate();
@@ -92,32 +93,27 @@ function CartDrawer() {
           </div>
 
           {/* Proceed to Checkout — primary action */}
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            disabled={cart.length === 0}
             onClick={() => {
               navigate("/checkout");
               closeCart();
             }}
-            className="
-            w-full rounded-md bg-primary-container py-3 font-body text-sm
-            font-normal tracking-widest text-on-primary-container
-            transition-all duration-200 ease-in-out
-            hover:scale-[1.02] hover:cursor-pointer active:scale-[0.98]
-          "
           >
             Proceed to Checkout
-          </button>
+          </Button>
 
-          {/* Clear Cart — ghost/destructive secondary */}
-          <button
+          <Button
+            variant="outline"
+            size="md"
+            disabled={cart.length === 0}
             onClick={clearCart}
-            className="
-            w-full rounded-md border border-white/10 py-3 font-body text-sm
-            tracking-widest text-on-surface-variant
-            transition-all duration-200 hover:border-error/40 hover:text-error
-          "
+            className="border-primary-container text-primary-container hover:text-on-primary-container hover:bg-primary-container-hover"
           >
             Clear Cart
-          </button>
+          </Button>
         </div>
       </aside>
     </>

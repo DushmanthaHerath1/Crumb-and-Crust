@@ -1,4 +1,5 @@
 import HeroBg from "../assets/images/hero-bg.png";
+import Button from "./ui/Button";
 
 export default function HeroSection() {
   const handleClick = () => {
@@ -24,12 +25,14 @@ export default function HeroSection() {
           </h2>
 
           <div className="flex items-start">
-            <button
+            <Button
               onClick={handleClick}
-              className="font-body font-normal text-xl rounded-md py-4 px-8 bg-primary-container text-on-primary-container transition-all duration-300 ease-in-out hover:scale-105 hover:cursor-pointer active:scale-95 "
+              variant="primary"
+              size="lg"
+              className="w-auto text-lg md:text-xl transition-transform duration-300 hover:scale-105"
             >
               Pre-order for Pickup
-            </button>
+            </Button>
           </div>
         </div>
       </section>
