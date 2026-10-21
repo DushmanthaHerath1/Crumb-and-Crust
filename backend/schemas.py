@@ -1,5 +1,3 @@
-from sqlalchemy import label
-from sqlalchemy import false
 from datetime import datetime
 from typing import List, Literal, Optional
 
@@ -31,8 +29,7 @@ class OrderResponse(BaseModel):
     status: str
     pickup_datetime: datetime
     total_price: Optional[float] = None
-    stripe_session_id: Optional[str] = None
-    checkout_url: Optional[str] = None
+    paypal_order_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -55,10 +52,21 @@ class AdminOrderResponse(BaseModel):
     total_price: Optional[float] = None
     customer_json: dict
     paid_at: Optional[datetime] = None
-    stripe_session_id: Optional[str] = None
+    paypal_order_id: Optional[str] = None
+    paypal_capture_id: Optional[str] = None
     items: List[OrderItemResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OrderCaptureResponse(BaseModel):
+    order_id: int
+    status: str
+    paypal_order_id: str
+    paypal_capture_id: Optional[str] = None
+    pickup_datetime: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class ProductResponse(BaseModel):
@@ -120,4 +128,6 @@ class AvailabilityResponse(BaseModel):
     lead_time_hours: int
     timezone: str
     days: List[DayOut]
+
+
 

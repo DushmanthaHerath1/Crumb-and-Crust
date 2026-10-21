@@ -155,34 +155,34 @@ Cart drawer/panel, Guest checkout form, Date/time picker, Stripe redirect, Succe
 
 ### 3.1 — Page Setup
 
-- [ ] **Create `CheckoutPage.jsx`** — Shell/page in `src/pages/CheckoutPage.jsx`. Full form built in 3.2.
-- [ ] **Add route `/checkout` in `App.jsx`** — Register `<Route path="/checkout" element={<CheckoutPage />} />` inside `<Routes>`.
+- [x] **Create `CheckoutPage.jsx`** — Shell/page in `src/pages/CheckoutPage.jsx`. Full form built in 3.2.
+- [x] **Add route `/checkout` in `App.jsx`** — Register `<Route path="/checkout" element={<CheckoutPage />} />` inside `<Routes>`.
 - [x] **Wire "Proceed to Checkout"** — `useNavigate("/checkout")` + `closeCart()` wired in `CartDrawer`. Cart closes cleanly on navigation.
 - [x] **Extract `StorefrontPage.jsx`** — Moved menu fetch + Hero + MenuSection into `src/pages/StorefrontPage.jsx`. `App.jsx` is now a pure routing shell.
 
 ### 3.2 — Order Summary Sidebar
 
-- [ ] **Render cart items summary on checkout page** — Read from `useCartStore`. Display product name, quantity, line subtotal. Display cart total.
-- [ ] **Display `max_lead_time_hours`** — Compute `Math.max(...cart.map(item => item.lead_time_h))` from the cart. Show it as a note: "Your order requires X hours preparation time."
+- [x] **Render cart items summary on checkout page** — Read from `useCartStore`. Display product name, quantity, line subtotal. Display cart total.
+- [x] **Display `max_lead_time_hours`** — Compute `Math.max(...cart.map(item => item.lead_time_h))` from the cart. Show it as a note: "Your order requires X hours preparation time."
 
 ### 3.3 — Guest Info Form
 
-- [ ] **Build guest info form** — Fields: Full Name (min 2 chars), Email (valid format), Phone (min 9 chars). Controlled React inputs with local state.
-- [ ] **Add inline validation** — Show error messages per field on blur. Disable the submit button until all fields are valid.
+- [x] **Build guest info form** — Fields: Full Name (min 2 chars), Email (valid format), Phone (min 9 chars). Controlled React inputs with local state.
+- [x] **Add inline validation** — Show error messages per field on blur. Disable the submit button until all fields are valid.
 
 ### 3.4 — Date & Time Picker (Wired to Business Rules)
 
-- [ ] **Fetch `GET /api/business-rules` on checkout page mount** — Store `daily_order_cap`, `blackout_dates`, `opening_hours_json`, `max_advance_days` in local state.
-- [ ] **Fetch availability for the visible month from `GET /api/availability`** — On calendar month render (and when the user navigates months), fetch availability for each date in the visible range. Cache results locally so navigating back doesn't re-fetch. Use `is_fully_booked` to disable dates that are at capacity in the calendar grid.
-- [ ] **Build a custom date picker** — No date-picker library (plain JS date math, ~50–80 lines). Build a simple calendar grid (month view). No external dependency needed.
-- [ ] **Disable invalid dates in the date picker:**
+- [x] **Fetch `GET /api/business-rules` on checkout page mount** — Store `daily_order_cap`, `blackout_dates`, `opening_hours_json`, `max_advance_days` in local state.
+- [x] **Fetch availability for the visible month from `GET /api/availability`** — On calendar month render (and when the user navigates months), fetch availability for each date in the visible range. Cache results locally so navigating back doesn't re-fetch. Use `is_fully_booked` to disable dates that are at capacity in the calendar grid.
+- [x] **Build a custom date picker** — No date-picker library (plain JS date math, ~50–80 lines). Build a simple calendar grid (month view). No external dependency needed.
+- [x] **Disable invalid dates in the date picker:**
   - Dates before today
   - Dates within the next `max_lead_time_hours` hours (enforce the 48h fermentation rule client-side for UX)
   - Dates in `blackout_dates` array from the API
   - Dates beyond `today + max_advance_days`
   - Dates where `is_fully_booked === true` from the availability API
-- [ ] **Build a time slot selector** — After a valid date is chosen, render clickable time slots from `opening_hours_json.start` to `opening_hours_json.end` in 30-minute increments. Disable past slots on the current day.
-- [ ] **Require both a date AND a time to be selected** before the form submit button becomes active.
+- [x] **Build a time slot selector** — After a valid date is chosen, render clickable time slots from `opening_hours_json.start` to `opening_hours_json.end` in 30-minute increments. Disable past slots on the current day.
+- [x] **Require both a date AND a time to be selected** before the form submit button becomes active.
 
 ### 3.5 — Form Submission & Stripe Redirect
 

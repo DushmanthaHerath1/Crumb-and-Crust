@@ -7,6 +7,7 @@ import config
 
 #thirdparty
 from fastapi import HTTPException
+from sqlalchemy import or_
 
 def _to_utc(dt: datetime) -> datetime:
     """Ensure timezone information of slots came from db and add UTC if there are not"""
@@ -16,17 +17,36 @@ def _fmt(dt: datetime) -> str:
     """format the time and return it as a string"""
     return dt.strftime("%I:%M %p").lstrip("0")
 
+def pending_cutoff(now_utc: datetime | None = None) -> datetime:
+    """Pending orders created before this (naive UTC) moment no longer hold capacity."""
+    now_utc = now_utc or datetime.now(timezone.utc)
+    return (now_utc - timedelta(minutes=config.PENDING_HOLD_MINUTES)).replace(tzinfo=None)
+
+def is_hold_expired(order) -> bool:
+    return order.status == "pending" and order.created_at < pending_cutoff()
+
 def booked_counts(db) -> dict:
     """Orders per bakery-local date. Abandoned/failed orders don't use up capacity."""
-    rows = db.query(models.Order.pickup_datetime).filter(
-        models.Order.status.notin_(["failed", "refunded"])
-    ).all()
+    rows = (
+        db.query(models.Order.pickup_datetime)
+        .filter(models.Order.status.notin_(["failed", "refunded"]))
+        .filter(or_(
+            models.Order.status != "pending",
+            models.Order.created_at >= pending_cutoff(),
+        ))
+        .all()
+    )
 
     counts = {}
     for (dt,) in rows:
         d = _to_utc(dt).astimezone(config.BAKERY_TZ).date().isoformat()
         counts[d] = counts.get(d, 0) + 1
     return counts
+
+def has_capacity(db, pickup_dt: datetime, rule) -> bool:
+    day = _to_utc(pickup_dt).astimezone(config.BAKERY_TZ).date().isoformat()
+    return booked_counts(db).get(day, 0) < rule.daily_order_cap
+
 
 def build_availability(rule, lead_hours: int, db, now_utc=None) -> list:
     now_utc = now_utc or datetime.now(timezone.utc)

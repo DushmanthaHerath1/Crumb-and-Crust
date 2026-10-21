@@ -1,11 +1,15 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useCartStore from "../store/useCartStore";
 
 export function useCheckoutForm() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+  const navigate = useNavigate();
+
   const cart = useCartStore((state) => state.cart);
   const cartTotal = useCartStore((state) => state.cartTotal());
+  const clearCart = useCartStore((state) => state.clearCart);
 
   const productIds = useMemo(
     () => cart.map((item) => item.id).join(","),
@@ -35,7 +39,13 @@ export function useCheckoutForm() {
   const idempotencyKeyRef = useRef(crypto.randomUUID());
   useEffect(() => {
     idempotencyKeyRef.current = crypto.randomUUID();
-  }, [cart]);
+  }, [
+    cart,
+    formData.fullName,
+    formData.email,
+    formData.phone,
+    formData.pickupTime,
+  ]);
 
   useEffect(() => {
     if (!productIds) return;
@@ -117,16 +127,15 @@ export function useCheckoutForm() {
     selectedSlot?.available === true &&
     agreed;
 
-  //Backend Aligned Submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
+  const handleCreateOrder = async () => {
+    if (!isFormValid || isSubmitting) {
+      throw new Error("Please complete all required fields correctly.");
+    }
 
-    setIsSubmitting(true);
+    // setIsSubmitting(true);
     setServerError(null);
 
     try {
-      // Backend Schema: OrderCreate
       const payload = {
         customer_details: {
           name: formData.fullName.trim(),
@@ -143,7 +152,7 @@ export function useCheckoutForm() {
 
       const response = await fetch(`${BACKEND_URL}/api/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -153,24 +162,69 @@ export function useCheckoutForm() {
       } catch {}
 
       if (!response.ok) {
-        const erroDetail = Array.isArray(data.detail)
+        const errorDetail = Array.isArray(data.detail)
           ? data.detail.map((d) => d.msg).join(", ")
           : data.detail || "Failed to process order";
-        throw new Error(erroDetail);
+        throw new Error(errorDetail);
       }
 
-      // Reditect to stripe checkout
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      } else {
-        throw new Error(
-          "Unable to initiate payment session. Please try again.",
-        );
+      if (!data.paypal_order_id) {
+        throw new Error("Missing Paypal order ID in server response. ");
       }
+
+      return data.paypal_order_id;
     } catch (err) {
+      idempotencyKeyRef.current = crypto.randomUUID();
       setServerError(err.message);
       setIsSubmitting(false);
+      throw err;
     }
+  };
+
+  const handleApprove = async (data, actions) => {
+    try {
+      const captureResponse = await fetch(
+        `${BACKEND_URL}/api/orders/${data.orderID}/capture`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      let captureData = {};
+      setIsSubmitting(true);
+      try {
+        captureData = await captureResponse.json();
+      } catch {}
+
+      if (!captureResponse.ok) {
+        if (captureData.detail === "INSTRUMENT_DECLINED") {
+          return actions.restart();
+        }
+        throw new Error(captureData.detail || "Payment capture failed.");
+      }
+
+      if (clearCart) {
+        clearCart();
+      }
+
+      navigate("/order-confirmed", {
+        state: { orderDetails: captureData },
+      });
+    } catch (err) {
+      setServerError(
+        err.message || "An error occurred during payment capture.",
+      );
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleError = (err) => {
+    console.error("paypal SDK Error:", err);
+    setServerError(
+      "An unexpected error occurred with PayPal. Please try again.",
+    );
+    setIsSubmitting(false);
+  };
+
+  const handleCancel = () => {
+    setIsSubmitting(false);
   };
 
   return {
@@ -191,6 +245,9 @@ export function useCheckoutForm() {
     handleBlur,
     setDateIndex,
     setAgreed,
-    handleSubmit,
+    handleCreateOrder,
+    handleApprove,
+    handleError,
+    handleCancel,
   };
 }

@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 
 #local
 import config
-import stripe
 from database import engine, get_db
 
 #endpoint logics
@@ -17,10 +16,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    stripe.api_key = config.STRIPE_SECRET_KEY
 
     db = next(get_db())
     try:

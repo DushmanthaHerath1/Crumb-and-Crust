@@ -6,10 +6,11 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
-    Float,
     ForeignKey,
     Integer,
+    Numeric,
     String,
+    text,
 )
 from sqlalchemy.orm import relationship
 
@@ -20,7 +21,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    price = Column(Float, nullable=False)
+    price = Column(Numeric(10, 2), nullable=False)
     category = Column(String, nullable=True)
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
@@ -52,10 +53,17 @@ class Order(Base):
     status = Column(
         String, default="pending"
     )  ## pending, paid, ready_for_pickup, completed
-    total_price = Column(Float, nullable=True)
-    stripe_session_id = Column(String, unique=True, nullable=True)
+    total_price = Column(Numeric(10, 2), nullable=True)
+    paypal_order_id = Column(String(64), unique=True, index=True, nullable=True)
+    paypal_capture_id = Column(String(64), unique=True, index=True, nullable=True)
     paid_at = Column(DateTime, nullable=True)
     idempotency_key = Column(String, unique=True, index=True, nullable=True)
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        server_default=text("(now() AT TIME ZONE 'utc')"),
+    )
 
     items = relationship("OrderItem", back_populates="order")
 
@@ -68,7 +76,8 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, nullable=False)
-    subtotal = Column(Float, nullable=False)
+    subtotal = Column(Numeric(10, 2), nullable=False)
+
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

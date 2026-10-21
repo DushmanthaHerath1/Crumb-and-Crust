@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { CreditCard, AlertCircle } from "lucide-react";
-import Button from "../components/ui/Button";
+import { AlertCircle } from "lucide-react";
+import { PayPalButtons } from "@paypal/react-paypal-js";
 
 import { OrderSummary } from "../components/OrderSummary";
 import { GuestInfoSection } from "../components/GuestInfoSection";
@@ -32,7 +32,10 @@ function CheckoutPage() {
     handleBlur,
     setDateIndex,
     setAgreed,
-    handleSubmit,
+    handleCreateOrder,
+    handleApprove,
+    handleError,
+    handleCancel,
   } = useCheckoutForm();
 
   if (!cart || cart.length === 0) {
@@ -69,7 +72,7 @@ function CheckoutPage() {
 
         {/* Right Column: Checkout Form (Figma 3 cols) */}
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => e.preventDefault()}
           className="flex flex-col gap-12 lg:col-span-3"
         >
           {/* Backend Error Alert Banner */}
@@ -117,16 +120,24 @@ function CheckoutPage() {
               </span>
             </label>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              icon={CreditCard}
-              disabled={!isFormValid}
-              isLoading={isSubmitting}
-            >
-              Pay with Stripe
-            </Button>
+            {/*paypal smart payment buttons*/}
+            <div className="w-full min-h-12.5 relative z-0">
+              <PayPalButtons
+                disabled={!isFormValid}
+                forceReRender={[isFormValid]}
+                style={{
+                  layout: "vertical",
+                  color: "gold",
+                  shape: "rect",
+                  label: "pay",
+                  height: 48,
+                }}
+                createOrder={handleCreateOrder}
+                onApprove={handleApprove}
+                onError={handleError}
+                onCancel={handleCancel}
+              />
+            </div>
           </section>
         </form>
       </main>

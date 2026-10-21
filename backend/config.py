@@ -12,6 +12,29 @@ if not _bakery_tz_name:
 BAKERY_TZ = ZoneInfo(_bakery_tz_name)
 SLOT_MINUTES = 120
 
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-IS_MOCK_STRIPE = (not STRIPE_SECRET_KEY) or STRIPE_SECRET_KEY == "sk_test_dummy_key_for_mocking"
+def _require(name: str) -> str:
+    """Read a required env var or stop the app at startup"""
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"{name} environment variable is not set")
+    return value
+
+PAYPAL_ENV = os.getenv("PAYPAL_ENV", "sandbox").strip().lower()
+_PAYPAL_API_BASES = {
+    "sandbox": "https://api-m.sandbox.paypal.com",
+    "live": "https://api-m.paypal.com",
+}
+
+if PAYPAL_ENV not in _PAYPAL_API_BASES:
+    raise RuntimeError("PAYPAL_ENV must be 'sandbox' or 'live'")
+
+PAYPAL_API_BASE = _PAYPAL_API_BASES[PAYPAL_ENV]
+PAYPAL_CLIENT_ID = _require("PAYPAL_CLIENT_ID")
+PAYPAL_CLIENT_SECRET = _require("PAYPAL_CLIENT_SECRET")
+PAYPAL_CURRENCY = os.getenv("PAYPAL_CURRENCY", "USD").strip().upper()
+
+PAYPAL_WEBHOOK_ID = os.getenv("PAYPAL_WEBHOOK_ID")
+if PAYPAL_ENV == "live" and not PAYPAL_WEBHOOK_ID:
+    raise RuntimeError("PAYPAL_WEBHOOK_ID is required when PAYPAL_ENV=live")
+
+PENDING_HOLD_MINUTES = int(os.getenv("PENDING_HOLD_MINUTES", "30"))
