@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 
-import { OrderSummary } from "../components/OrderSummary";
-import { GuestInfoSection } from "../components/GuestInfoSection";
-import { PickupScheduler } from "../components/PickupScheduler";
+import { OrderSummary } from "../components/checkout/OrderSummary";
+import { GuestInfoSection } from "../components/checkout/GuestInfoSection";
+import { PickupScheduler } from "../components/checkout/PickupScheduler";
 
 import { useCheckoutForm } from "../hooks/useCheckoutForm";
 

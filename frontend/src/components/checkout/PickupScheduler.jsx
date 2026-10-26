@@ -1,5 +1,5 @@
 import { Calendar, Info, Lock } from "lucide-react";
-import { Select } from "./ui/Select";
+import { Select } from "../ui/Select";
 
 function DateOption({ day, index, disabled, selected, onSelect }) {
   console.log("Days prop received:", day); //debug

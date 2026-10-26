@@ -1,4 +1,4 @@
-import { money } from "../utils/formatter";
+import { money } from "../../utils/formatter";
 
 export function OrderSummary({ cart, cartTotal, maxLeadTime }) {
   return (

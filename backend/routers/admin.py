@@ -1,6 +1,7 @@
 #stdlib
-from fastapi import APIRouter
-from typing import List
+import logging
+from typing import List, Optional
+from datetime import date
 
 #local
 import models
@@ -10,9 +11,19 @@ from database import get_db
 from dependencies import get_current_admin
 
 #thirdparty
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy import Date, cast
+from sqlalchemy.orm import Session, selectinload
+
+logger = logging.getLogger(__name__)
+
+ALLOWED_STATUS_TRANSITIONS = {
+    "paid": ["ready_for_pickup"],
+    "ready_for_pickup": ["completed"],
+}
+
+KITCHEN_VISIBLE_STATUSES = ["paid", "ready_for_pickup", "completed"]
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -44,11 +55,23 @@ def admin_login(
 # test: endpoint for view orders (secured)
 @router.get("/orders", response_model=List[schemas.AdminOrderResponse])
 def get_all_orders(
+    pickup_date: Optional[date] = Query(None, alias="date", description="Filter by pickup date YYYY-MM-DD"),
+    status: Optional[str] = Query(None, description="Filter by order status"),
     db: Session = Depends(get_db),
     current_admin: models.AdminUser = Depends(get_current_admin),
 ):
-    """Get all orders (only accessible by logged-in admins)"""
-    return db.query(models.Order).order_by(models.Order.pickup_datetime.asc()).all()
+    """Get all orders (only accessible by logged-in admins). Excludes unpaid/pending/failed orders by default."""
+    query = db.query(models.Order).options(selectinload(models.Order.items).selectinload(models.OrderItem.product))
+
+    if status:
+        query = query.filter(models.Order.status == status)
+    else:
+        query = query.filter(models.Order.status.in_(KITCHEN_VISIBLE_STATUSES))
+
+    if pickup_date:
+        query = query.filter(cast(models.Order.pickup_datetime, Date) == pickup_date)
+
+    return query.order_by(models.Order.pickup_datetime.asc()).all()
 
 
 @router.patch("/orders/{order_id}/status", response_model=schemas.AdminOrderResponse)
@@ -61,7 +84,17 @@ def update_order_status(
     """Update status of an order and create an audit trail record."""
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Order not found"
+            )
+
+    allowed = ALLOWED_STATUS_TRANSITIONS.get(order.status, [])
+    if status_update.new_status not in allowed:
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail=f"Cammot transition order #{order_id} from '{order.status}' to '{status_update.new_status}'. Allowed transactions: {allowed}",
+        )
 
     old_status = order.status
     order.status = status_update.new_status
@@ -80,4 +113,53 @@ def update_order_status(
         return order
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database transaction failed{e}")
+        logger.error(f"Database error updating order #{order_id} status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="Database transaction failed while updating order status."
+        )
+
+@router.get("/products", response_model=List[schemas.ProductResponse])
+def get_all_admin_products(
+    db: Session = Depends(get_db),
+    current_admin: models.AdminUser = Depends(get_current_admin),
+):
+    """
+    Get all products including inactive ones.
+    Sorted by category and ID.
+    """
+    return (
+        db.query(models.Product)
+        .order_by(models.Product.category.asc(), models.Product.id.asc())
+        .all()
+    )
+
+@router.patch("/products/{product_id}/availability", response_model=schemas.ProductResponse)
+def update_product_availability(
+    product_id: int,
+    update: schemas.ProductAvailabilityUpdate,
+    db: Session = Depends(get_db),
+    current_admin: models.AdminUser = Depends(get_current_admin),
+):
+    """
+    Update product active status (In stock / Out of stock).
+    Setting is_active=False immediately hides it from customer menu and rejects checkout.
+    """
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Product not found"
+        )
+    product.is_active = update.is_active
+    try:
+        db.commit()
+        db.refresh(product)
+        return product
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating product #{product_id} availability: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database transaction failed while updating product availability.",
+        )

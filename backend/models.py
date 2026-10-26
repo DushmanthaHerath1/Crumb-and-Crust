@@ -82,6 +82,10 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
 
+    @property
+    def product_name(self) -> str:
+        return self.product.name if self.product else "Unknown Product"
+
 
 # Admin Users Table (Staff Auth)
 class AdminUser(Base):

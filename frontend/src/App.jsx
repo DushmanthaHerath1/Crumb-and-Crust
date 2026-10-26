@@ -6,7 +6,7 @@ import StorefrontPage from "./pages/StorefrontPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import StaffLogin from "./pages/StaffLogin";
-import KitchenDashboard from "./pages/KitchenDashboard";
+import StaffPortalDashboard from "./pages/StaffPortalDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 
@@ -15,7 +15,9 @@ function AppShell() {
   const isAdmin = location.pathname.startsWith("/admin");
 
   return (
-    <div className={`bg-surface min-h-screen ${isAdmin ? "" : "pt-16"}`}>
+    <div
+      className={`min-h-screen ${isAdmin ? "bg-gray-50" : "bg-surface pt-16"}`}
+    >
       {!isAdmin && <Navbar />}
       {!isAdmin && <CartDrawer />}
       <Routes>
@@ -27,7 +29,7 @@ function AppShell() {
           path="/admin/dashboard"
           element={
             <ProtectedRoute>
-              <KitchenDashboard />
+              <StaffPortalDashboard />
             </ProtectedRoute>
           }
         />

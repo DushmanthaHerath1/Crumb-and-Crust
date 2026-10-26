@@ -38,6 +38,7 @@ class OrderResponse(BaseModel):
 class OrderItemResponse(BaseModel):
     id: int
     product_id: int
+    product_name: Optional[str] = None
     quantity: int
     subtotal: float  # price × quantity, stored at order time
 
@@ -81,6 +82,9 @@ class ProductResponse(BaseModel):
     is_featured: bool = False
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProductAvailabilityUpdate(BaseModel):
+    is_active: bool
 
 
 class BusinessRuleResponse(BaseModel):
